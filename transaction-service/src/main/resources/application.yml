@@ -1,0 +1,8 @@
+server:
+  port: 8441
+
+spring:
+  application:
+    name: transaction-server
+  kafka:
+    bootstrapServers: localhost:8108
