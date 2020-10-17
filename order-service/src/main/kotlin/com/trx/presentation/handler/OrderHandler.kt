@@ -12,6 +12,7 @@ import com.trx.application.transaction.DistributedTransaction
 import com.trx.domain.dto.Account
 import com.trx.domain.dto.Product
 import com.trx.domain.entity.Order
+import com.trx.domain.event.OrderTransactionEvent
 import com.trx.domain.repository.OrderRepository
 import java.lang.Exception
 import kotlin.random.Random
