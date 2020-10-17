@@ -1,12 +1,12 @@
-package com.trx.application.transaction
+package com.trx.domain.event
 
-import com.trx.domain.event.AccountTransactionEvent
 import org.springframework.stereotype.Component
+import com.trx.application.transaction.DistributedTransaction
 
 @Component
 class EventBus {
     private val transactions = mutableSetOf<DistributedTransaction>()
-    private val events = mutableSetOf<AccountTransactionEvent>()
+    private val events = mutableSetOf<OrderTransactionEvent>()
 
     fun sendTransaction(event: DistributedTransaction) = transactions.add(event)
 
@@ -19,9 +19,9 @@ class EventBus {
             ?.also { transactions.remove(it) }
     }
 
-    fun sendEvent(event: AccountTransactionEvent) = events.add(event)
+    fun sendEvent(event: OrderTransactionEvent) = events.add(event)
 
-    fun receiveEvent(eventId: String): AccountTransactionEvent? {
+    fun receiveEvent(eventId: String): OrderTransactionEvent? {
         while (events.find { it.transactionId == eventId } == null) {
             Thread.sleep(TIME)
         }

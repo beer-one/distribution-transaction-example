@@ -1,7 +1,6 @@
 package com.trx.domain.event
 
 import com.trx.application.transaction.DistributedTransactionStatus
-import com.trx.application.transaction.EventBus
 import com.trx.exception.AccountProcessingException
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase

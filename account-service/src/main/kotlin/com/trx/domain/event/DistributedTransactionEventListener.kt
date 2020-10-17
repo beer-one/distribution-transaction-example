@@ -1,7 +1,6 @@
 package com.trx.domain.event
 
 import com.trx.application.transaction.DistributedTransaction
-import com.trx.application.transaction.EventBus
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 

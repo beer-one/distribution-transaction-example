@@ -1,7 +1,7 @@
 package com.trx.presentation.handler
 
 import com.trx.application.AccountService
-import com.trx.application.transaction.EventBus
+import com.trx.domain.event.EventBus
 import com.trx.domain.entity.Account
 import com.trx.domain.repository.AccountRepository
 import org.springframework.stereotype.Component
