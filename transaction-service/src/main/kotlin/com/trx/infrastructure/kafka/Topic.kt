@@ -1,0 +1,12 @@
+package com.trx.infrastructure.kafka
+
+object Topic {
+    const val CHECK_PRODUCT = "CHECK-PRODUCT"
+    const val APPLY_PAYMENT = "APPLY-PAYMENT"
+
+    const val CHECK_PRODUCT_RESULT = "CHECK-PRODUCT-RESULT"
+    const val APPLY_PAYMENT_RESULT = "APPLY-PAYMENT-RESULT"
+
+    const val CHECK_PRODUCT_ROLLBACK = "CHECK-PRODUCT-ROLLBACK"
+    const val APPLY_PAYMENT_ROLLBACK = "APPLY-PAYMENT_ROLLBACK"
+}

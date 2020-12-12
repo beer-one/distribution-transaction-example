@@ -18,15 +18,7 @@ class TransactionRouter (
         return coRouter {
             "/transactions".nest {
                 accept(MediaType.APPLICATION_JSON).nest {
-                    POST("", transactionHandler::add)
-                    "/{id}".nest {
-                        GET("", transactionHandler::findById)
-                        PUT("/finish/{status}", transactionHandler::finish)
-                        "/participants".nest {
-                            PUT("", transactionHandler::addParticipant)
-                            PUT("/{serviceId}/status/{status}", transactionHandler::updateParticipant)
-                        }
-                    }
+                    POST("/orders", transactionHandler::doOrderTransaction)
                 }
             }
         }
