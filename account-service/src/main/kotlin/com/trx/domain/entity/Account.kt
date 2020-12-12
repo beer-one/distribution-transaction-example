@@ -12,4 +12,10 @@ data class Account(
     val customerId: Int,
 
     var balance: Int
-)
+) {
+    fun applyPayment(price: Int) {
+        if (balance < price) throw Exception()
+
+        balance -= price
+    }
+}
