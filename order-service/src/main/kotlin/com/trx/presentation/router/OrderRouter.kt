@@ -18,7 +18,7 @@ class OrderRouter (
         return coRouter {
             "/orders".nest {
                 accept(MediaType.APPLICATION_JSON).nest {
-                    POST("", orderHandler::addAndRollback)
+                    POST("", orderHandler::createOrder)
                 }
             }
         }

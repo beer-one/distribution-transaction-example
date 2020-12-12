@@ -1,0 +1,3 @@
+package com.trx.application.event
+
+interface TransactionEventPublisher

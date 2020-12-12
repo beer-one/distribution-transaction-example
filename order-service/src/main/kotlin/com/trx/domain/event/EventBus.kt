@@ -1,7 +1,6 @@
 package com.trx.domain.event
 
 import org.springframework.stereotype.Component
-import com.trx.application.transaction.DistributedTransaction
 
 @Component
 class EventBus {
