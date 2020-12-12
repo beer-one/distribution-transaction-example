@@ -1,5 +1,6 @@
 package com.trx.domain.entity
 
+import com.trx.errors.exception.ProductOutOfStockException
 import javax.persistence.*
 
 @Entity
@@ -17,7 +18,7 @@ data class Product(
     val price: Int = 0
 ) {
     fun subtract(subtractCount: Int): Int {
-        if (count < subtractCount) throw Exception()
+        if (count < subtractCount) throw ProductOutOfStockException()
 
         return (price * subtractCount).also {
             count -= subtractCount

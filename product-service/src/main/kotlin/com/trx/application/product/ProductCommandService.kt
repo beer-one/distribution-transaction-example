@@ -1,6 +1,7 @@
 package com.trx.application.product
 
 import com.trx.domain.repository.ProductRepository
+import com.trx.errors.exception.ProductNotFoundException
 import com.trx.topic.event.CheckProductEvent
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
@@ -15,7 +16,7 @@ class ProductCommandService (
     @Transactional
     fun checkAndSubtractProduct(event: CheckProductEvent): Int {
         return productRepository.findByIdOrNull(event.productId)
-            ?.let { it.subtract(event.count) }
-            ?: throw Exception()
+            ?.subtract(event.count)
+            ?: throw ProductNotFoundException()
     }
 }

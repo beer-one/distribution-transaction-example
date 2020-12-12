@@ -1,6 +1,7 @@
 package com.trx.application.account
 
 import com.trx.domain.repository.AccountRepository
+import com.trx.errors.exception.AccountNotFoundException
 import com.trx.topic.event.ApplyPaymentEvent
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
@@ -15,6 +16,6 @@ class AccountCommandService (
     fun applyPayment(event: ApplyPaymentEvent) {
         accountRepository.findByIdOrNull(event.customerId)
             ?.also { it.applyPayment(event.price) }
-            ?: throw Exception()
+            ?: throw AccountNotFoundException()
     }
 }

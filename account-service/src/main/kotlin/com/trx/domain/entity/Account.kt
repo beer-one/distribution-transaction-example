@@ -1,5 +1,6 @@
 package com.trx.domain.entity
 
+import com.trx.errors.exception.InsufficientBalanceException
 import javax.persistence.*
 
 @Table
@@ -14,7 +15,7 @@ data class Account(
     var balance: Int
 ) {
     fun applyPayment(price: Int) {
-        if (balance < price) throw Exception()
+        if (balance < price) throw InsufficientBalanceException()
 
         balance -= price
     }

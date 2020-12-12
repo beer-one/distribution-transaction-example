@@ -1,6 +1,7 @@
 package com.trx.presentation.handler
 
 import com.trx.application.order.OrderTransactionService
+import com.trx.errors.exception.IncorrectFormatBodyException
 import com.trx.presentation.request.OrderTransactionRequest
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
@@ -12,7 +13,7 @@ class TransactionHandler (
 ) {
     suspend fun doOrderTransaction(request: ServerRequest): ServerResponse {
         val orderTransactionRequest = request.awaitBodyOrNull<OrderTransactionRequest>()
-            ?: throw Exception()
+            ?: throw IncorrectFormatBodyException()
 
         orderTransactionService.orchestrateOrderTransaction(orderTransactionRequest)
 

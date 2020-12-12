@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.application.event.TransactionEventPublisher
 import com.trx.application.product.ProductCommandService
 import com.trx.coroutine.boundedElasticScope
+import com.trx.errors.CustomException
+import com.trx.errors.exception.ProductNotFoundException
 import com.trx.topic.Topic.CHECK_PRODUCT
 import com.trx.topic.Topic.CHECK_PRODUCT_RESULT
 import com.trx.topic.event.CheckProductEvent
@@ -34,11 +36,11 @@ class ProductEventListener(
                 key = key,
                 event = CheckProductResultEvent.success(price)
             )
-        } catch (e: Exception) {
+        } catch (e: CustomException) {
             transactionEventPublisher.publishEvent(
                 topic = CHECK_PRODUCT_RESULT,
                 key = key,
-                event = CheckProductResultEvent.fail("무슨 오류")
+                event = CheckProductResultEvent.fail(e.errorCode.message)
             )
         }.let {
             boundedElasticScope.launch {

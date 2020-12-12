@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.application.account.AccountCommandService
 import com.trx.application.event.TransactionEventPublisher
 import com.trx.coroutine.boundedElasticScope
+import com.trx.errors.CustomException
 import com.trx.topic.Topic.APPLY_PAYMENT_RESULT
 import com.trx.topic.Topic.CHECK_PRODUCT
 import com.trx.topic.event.ApplyPaymentEvent
@@ -35,11 +36,11 @@ class AccountEventListener(
                 key = key,
                 event = ApplyPaymentResultEvent.success()
             )
-        } catch (e: Exception) {
+        } catch (e: CustomException) {
             transactionEventPublisher.publishEvent(
                 topic = APPLY_PAYMENT_RESULT,
                 key = key,
-                event = ApplyPaymentResultEvent.fail("무슨이유")
+                event = ApplyPaymentResultEvent.fail(e.errorCode.message)
             )
         }.let {
             boundedElasticScope.launch {
