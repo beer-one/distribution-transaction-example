@@ -5,6 +5,7 @@ import com.trx.application.account.AccountCommandService
 import com.trx.application.event.TransactionEventPublisher
 import com.trx.coroutine.boundedElasticScope
 import com.trx.errors.CustomException
+import com.trx.topic.Topic.APPLY_PAYMENT
 import com.trx.topic.Topic.APPLY_PAYMENT_RESULT
 import com.trx.topic.Topic.CHECK_PRODUCT
 import com.trx.topic.event.ApplyPaymentEvent
@@ -25,7 +26,7 @@ class AccountEventListener(
     private val transactionEventPublisher: TransactionEventPublisher
 ) : AcknowledgingMessageListener<String, String> {
 
-    @KafkaListener(topics = [CHECK_PRODUCT], containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = [APPLY_PAYMENT], containerFactory = "kafkaListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = (data.key() to objectMapper.readValue(data.value(), ApplyPaymentEvent::class.java))
 
