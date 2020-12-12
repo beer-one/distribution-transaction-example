@@ -2,13 +2,11 @@ package com.trx.infrastructure.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.application.event.TransactionEventListener
-import com.trx.infrastructure.kafka.event.CheckProductEvent
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
-import reactor.kafka.receiver.KafkaReceiver
 import reactor.kafka.receiver.ReceiverRecord
 import java.time.Duration
 import kotlin.reflect.KClass

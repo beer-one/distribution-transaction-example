@@ -2,15 +2,14 @@ package com.trx.application.order
 
 import com.trx.application.event.TransactionEventListener
 import com.trx.application.event.TransactionEventPublisher
-import com.trx.infrastructure.kafka.Topic
-import com.trx.infrastructure.kafka.Topic.APPLY_PAYMENT
-import com.trx.infrastructure.kafka.Topic.APPLY_PAYMENT_RESULT
-import com.trx.infrastructure.kafka.Topic.CHECK_PRODUCT
-import com.trx.infrastructure.kafka.Topic.CHECK_PRODUCT_RESULT
-import com.trx.infrastructure.kafka.event.ApplyPaymentEvent
-import com.trx.infrastructure.kafka.event.ApplyPaymentResultEvent
-import com.trx.infrastructure.kafka.event.CheckProductEvent
-import com.trx.infrastructure.kafka.event.CheckProductResultEvent
+import com.trx.topic.Topic.APPLY_PAYMENT
+import com.trx.topic.Topic.APPLY_PAYMENT_RESULT
+import com.trx.topic.Topic.CHECK_PRODUCT
+import com.trx.topic.Topic.CHECK_PRODUCT_RESULT
+import com.trx.topic.event.ApplyPaymentEvent
+import com.trx.topic.event.ApplyPaymentResultEvent
+import com.trx.topic.event.CheckProductEvent
+import com.trx.topic.event.CheckProductResultEvent
 import com.trx.presentation.request.OrderTransactionRequest
 import com.trx.utils.KeyGenerator
 import kotlinx.coroutines.reactive.awaitFirstOrNull

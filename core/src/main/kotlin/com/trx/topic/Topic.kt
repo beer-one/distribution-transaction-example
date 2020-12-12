@@ -1,4 +1,4 @@
-package com.trx.infrastructure.kafka
+package com.trx.topic
 
 object Topic {
     const val CHECK_PRODUCT = "CHECK-PRODUCT"

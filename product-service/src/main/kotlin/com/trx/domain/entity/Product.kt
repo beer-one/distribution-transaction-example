@@ -15,4 +15,12 @@ data class Product(
     var count: Int = 0,
 
     val price: Int = 0
-)
+) {
+    fun subtract(subtractCount: Int): Int {
+        if (count < subtractCount) throw Exception()
+
+        return (price * subtractCount).also {
+            count -= subtractCount
+        }
+    }
+}

@@ -1,4 +1,4 @@
-package com.trx.infrastructure.kafka.event
+package com.trx.topic.event
 
 data class ApplyPaymentResultEvent(
     val success: Boolean,

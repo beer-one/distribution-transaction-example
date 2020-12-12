@@ -54,6 +54,20 @@ subprojects {
         // Kafka
         implementation("org.springframework.kafka:spring-kafka")
         implementation("io.projectreactor.kafka:reactor-kafka")
+
+        // feign
+        implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
+        // coroutine
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.3.9")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.3.9")
+    }
+
+    if(project.name != "core") {
+        dependencies {
+            implementation(project(":core"))
+        }
     }
 
     tasks {
