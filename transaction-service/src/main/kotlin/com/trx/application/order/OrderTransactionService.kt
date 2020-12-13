@@ -29,7 +29,7 @@ class OrderTransactionService (
      * 어느 하나라도 망가지면 롤백
      * TODO: 실패 시 롤백 로직 생각해보기.
      */
-    suspend fun orchestrateOrderTransaction(request: OrderTransactionRequest) {
+    suspend fun orchestrateOrderTransaction(request: OrderTransactionRequest): Int {
         val key = KeyGenerator.generateKey()
 
         // 1-1. 상품 수량 체크
@@ -41,7 +41,7 @@ class OrderTransactionService (
             key = key
         )
 
-        requestApplyingPayment(
+        return requestApplyingPayment(
             event = ApplyPaymentEvent(
                 customerId = request.customerId,
                 price = productCheckResult.totalPrice
@@ -72,7 +72,7 @@ class OrderTransactionService (
             .awaitFirstOrNull()
             ?: throw TransactionException()
     }
-    private suspend fun requestApplyingPayment(event: ApplyPaymentEvent, key: String): ApplyPaymentResultEvent {
+    private suspend fun requestApplyingPayment(event: ApplyPaymentEvent, key: String): Int {
         transactionEventPublisher.publishEvent(
             topic = APPLY_PAYMENT,
             key = key,
@@ -85,8 +85,9 @@ class OrderTransactionService (
             key = key,
             kClass = ApplyPaymentResultEvent::class
         ).map { record ->
-            record.value().also {
+            record.value().let {
                 if (!it.success) throw TransactionException(it.failureReason)
+                it.restBalance
             }
         }
             .awaitFirstOrNull()

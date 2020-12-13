@@ -4,7 +4,7 @@ import com.trx.errors.exception.ProductOutOfStockException
 import javax.persistence.*
 
 @Entity
-@Table
+@Table(name = "product")
 data class Product(
 
     @Id

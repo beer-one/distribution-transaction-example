@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import org.springframework.web.reactive.function.server.ServerResponse.noContent
 import com.trx.presentation.request.OrderRequest
+import org.springframework.web.reactive.function.server.ServerResponse.ok
 
 @Component
 class OrderHandler(
@@ -16,8 +17,8 @@ class OrderHandler(
         val orderRequest = request.awaitBodyOrNull<OrderRequest>()
             ?: throw IncorrectFormatBodyException()
 
-        orderCommandService.create(orderRequest)
-
-        return noContent().buildAndAwait()
+        return orderCommandService.create(orderRequest).let {
+            ok().bodyValueAndAwait(it)
+        }
     }
 }

@@ -10,12 +10,11 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 
 @Configuration
 class KafkaConsumerConfiguration(
-    private val kafkaProperties: KafkaProperties,
-    private val productEventListener: ProductEventListener
+    private val kafkaProperties: KafkaProperties
 ) {
 
     @Bean
-    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+    fun kafkaListenerContainerFactory(productEventListener: ProductEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
         return ConcurrentKafkaListenerContainerFactory<String, String>().apply {
             consumerFactory = consumerFactory()
             containerProperties.ackMode = kafkaProperties.listener.ackMode

@@ -2,6 +2,7 @@ package com.trx.infrastructure.configuration
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
@@ -24,8 +25,8 @@ class KafkaConfig(
     fun reactiveKafkaProducerTemplate(): ReactiveKafkaProducerTemplate<String, String> {
         val properties = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperties.bootstrapServers,
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
         )
 
         return ReactiveKafkaProducerTemplate(SenderOptions.create(properties))
@@ -34,8 +35,8 @@ class KafkaConfig(
     @Bean
     fun reactiveKafkaConsumerTemplate(): ReactiveKafkaConsumerTemplate<String, String> {
         val properties = mapOf(
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringSerializer::class,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringSerializer::class,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperties.bootstrapServers
         )
 

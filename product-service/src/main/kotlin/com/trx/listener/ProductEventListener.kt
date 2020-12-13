@@ -25,7 +25,7 @@ class ProductEventListener(
     private val transactionEventPublisher: TransactionEventPublisher
 ) : AcknowledgingMessageListener<String, String> {
 
-    @KafkaListener(topics = [CHECK_PRODUCT], containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = [CHECK_PRODUCT], groupId = "product-consumer", containerFactory = "kafkaListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductEvent::class.java)
 

@@ -3,15 +3,17 @@ package com.trx.domain.entity
 import javax.persistence.*
 
 @Entity
-@Table
+@Table(name = "o_order")
 data class Order(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int = 0,
 
+    @Column(name = "product_id")
     val productId: Int,
 
     val count: Int,
 
+    @Column(name = "customer_id")
     val customerId: Int
 )

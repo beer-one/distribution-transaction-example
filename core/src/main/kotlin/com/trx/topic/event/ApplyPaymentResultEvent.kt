@@ -2,17 +2,20 @@ package com.trx.topic.event
 
 data class ApplyPaymentResultEvent(
     val success: Boolean,
-    val failureReason: String
+    val failureReason: String,
+    val restBalance: Int
 ) {
     companion object {
-        fun success() = ApplyPaymentResultEvent(
+        fun success(restBalance: Int) = ApplyPaymentResultEvent(
             success = true,
-            failureReason = ""
+            failureReason = "",
+            restBalance = restBalance
         )
 
         fun fail(reason: String) = ApplyPaymentResultEvent(
             success = false,
-            failureReason = reason
+            failureReason = reason,
+            restBalance = -1
         )
     }
 }

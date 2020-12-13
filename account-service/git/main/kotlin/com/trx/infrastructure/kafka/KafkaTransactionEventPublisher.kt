@@ -2,14 +2,10 @@ package com.trx.infrastructure.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.application.event.TransactionEventPublisher
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import reactor.kafka.sender.KafkaSender
-import reactor.kafka.sender.SenderRecord
 import reactor.kafka.sender.SenderResult
-import kotlin.reflect.KClass
 
 @Component
 class KafkaTransactionEventPublisher(

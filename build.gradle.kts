@@ -19,6 +19,7 @@ val jacksonVersion = "2.11.1"
 
 subprojects {
     apply(plugin = "kotlin")
+    apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "org.springframework.boot")
     apply(plugin = "kotlin-kapt")
@@ -36,6 +37,7 @@ subprojects {
     }
 
     dependencies {
+        implementation(kotlin("stdlib-jdk8"))
         implementation("org.springframework.boot:spring-boot-starter")
         implementation("org.springframework.boot:spring-boot-starter-webflux")
         developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -47,7 +49,6 @@ subprojects {
         runtimeOnly("mysql:mysql-connector-java")
 
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
-        implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.jetbrains.kotlin:kotlin-stdlib")
 

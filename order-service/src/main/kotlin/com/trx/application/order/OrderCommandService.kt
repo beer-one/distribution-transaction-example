@@ -22,13 +22,17 @@ class OrderCommandService (
                 customerId = request.customerId
             )
         ).let {
-            transactionService.doOrderTransaction(
+            val response = transactionService.doOrderTransaction(
                 OrderTransactionRequest(
                     orderId = it.id,
                     productId = request.productId,
                     count = request.count,
                     customerId = request.customerId
                 )
+            )
+
+            OrderResult(
+                it.id, response.restBalance
             )
         }
     }

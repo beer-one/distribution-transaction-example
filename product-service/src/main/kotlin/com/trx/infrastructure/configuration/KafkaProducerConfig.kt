@@ -16,8 +16,8 @@ class KafkaProducerConfig(
     fun reactiveKafkaProducerTemplate(): ReactiveKafkaProducerTemplate<String, String> {
         val properties = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to kafkaProperties.bootstrapServers,
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java
         )
 
         return ReactiveKafkaProducerTemplate(SenderOptions.create(properties))
