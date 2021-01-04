@@ -1,12 +1,14 @@
 server:
   port: 6030
+  netty:
+    connection-timeout: 4000
 
 spring:
   kafka:
     bootstrap-servers: localhost:9092
     producer:
       retries: 1
-      key-serializer: org.apache.kafka.common.serialization.StringSerㅎalizer
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -15,7 +17,7 @@ spring:
       ack-mode: manual
       poll-timeout: 5000
   datasource:
-    url: jdbc:mysql://localhost:3306/saga_product?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/saga_product?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
     username: saga-tester
     password: sagatest
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -33,4 +35,4 @@ spring:
 
 logging:
   level:
-    org.springframework: TRACE
+    org.springframework: WARN

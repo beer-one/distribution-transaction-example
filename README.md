@@ -71,63 +71,87 @@ Blocking Protocol이기 때문에 Coordinator가 영구적으로 실패하면 �
 
 
 
-### SAGA
+## SAGA
 
 SAGA는 2PC와는 다르게 트랜잭션 관리 주체가 DBMS가 아닌 애플리케이션에 있다. MSA와 같이 애플리케이션이 분산되어 있을 때, 각 애플리케이션 하위에 존재하는 DB는 로컬 트랜잭션 처리만 담당한다. 따라서 각각의 애플리케이션에 대해서 연속적인 트랜잭션 요청이 실패할 경우, 롤백 처리를 애플리케이션 단에서 구현해야 한다. 
 
-![img](https://blog.kakaocdn.net/dn/bL3MKk/btqBuiX8Wnl/9S2jkqnfbKN5Gkkt2SV5dK/img.png)
+SAGA 패턴은 Choreography-based SAGA 와 Orchestration-based SAGA로 두 종류가 있다.
 
 
 
-![img](https://blog.kakaocdn.net/dn/FyIyP/btqBr8pnDgR/JFUUCdDaxYi8lwWWRC3El0/img.png)
+### Choreography-based SAGA
+
+![Saga_Choreography_Flow.001](/Users/yunseowon/Desktop/Saga_Choreography_Flow.001.jpeg)
+
+Choreography-based SAGA는 각 서비스마다 자신의 로컬 트랜잭션을 관리하며 현재 상태를 바꾼 후 완료가 되었으면 완료 이벤트를 발생시켜 이벤트를 다음 트랜잭션을 관리하는 서비스에 전달하여 트랜잭션을 처리하는 방식으로 구현된다. 만약 트랜잭션이 롤백되어야 할 경우, 보상 이벤트를 발생시킴으로써 보상 트랜잭션이 실행될 수 있도록 하여 트랜잭션을 관리한다.
+
+해당 그림에서는 다음과 같은 순서로 트랜잭션이 보장된다.
+
+**Commit**
+
+1. OrderService가 Order를 생성시키고 pending 상태로 놔둔 후 OrderCreated 이벤트를 생성한다.
+2. Customer Service가 Order Created 이벤트를 받은 후 Credit을 생성한 후 Credit Reserved 이벤트를 발생시킨다.
+3. OrderService는 CreditReserved 이벤트를 받은 후 pending 상태의 Order를 approved로 변경하여 트랜잭션이 Commit 될 수 있도록 한다.
+
+**Rollback**
+
+1. OrderService가 Order를 생성시키고 pending 상태로 놔둔 후 OrderCreated 이벤트를 생성한다.
+2. Customer Service가 Order Created 이벤트를 받았지만 Credit 제한이 걸려 Credit을 생성할 수 없다면 CreditLimitExceeded 이벤트를 발생시킨다.
+3. OrderService는 CreditLimitExceeded 이벤트를 받은 후 pending 상태의 Order를 reject로 변경하여 트랜잭션이 Rollback 될 수 있도록 한다.
 
 
 
-SAGA 패턴은 연속적인 업데이트 연산으로 이루어져있으며, 전체가 동시에 데이터가 영속화 되는 것이 아니라 순차적인 단계로 트랜잭션이 이루어진다. 따라서 애플리케이션 비즈니스 로직에서 요구되는 마지막 트랜잭션이 끝났을 때(성공했을 때) 데이터가 완전히 영속되었음을 인지하고 종료한다.
+#### 장점
 
-2PC와는 다르게 saga는 데이터 원자성을 보장해주지는 않는다. 대신, application 트랜잭션 관리를 통해 최종 일관성 (Eventually Consistency)을 달성할 수 있기 때문에 분산되어있는 DB간에 정합성을 맞출 수 있다. 또한 트랜잭션 관리를 application에서 하기 때문에 DBMS를 다양한 제품군으로 구성할 수 있는 장점도 있다.
-
-
-
-## SpringBoot로 구현하기
-
-먼저, SAGA 패턴을 사용하여 분산 트랜잭션을 구현해보자. SpringBoot로 서버를 구현하고, [^1]Axon Framework를 사용하여 구현할 것이다. 
+* 별도의 Orchestrator가 없어서 Orchestration-based 보다 성능상 이점이 있다. (인스턴스를 만들지 않아도 되거나 별도의 Orchestrator 서비스가 없어도 됨.)
+* 구현하기 쉽다.
+* 개념에 대해 이해하기 쉽다.
 
 
 
+#### 단점
 
-
-## 아키텍처
-
-![spring-microservice-transactions-arch1](https://piotrminkowski.files.wordpress.com/2020/06/spring-microservice-transactions-arch1.png?resize=617%2C350)
-
-API를 제공하는 3개의 마이크로서비스인 Order-service, account-service, product-service와, 분산 트랜잭션을 관리하는 transaction-server, 그리고 MSA를 관리하는 discovery-server가 있다.
-
-
-
-### 시나리오
-
-![spring-microservices-transactions-arch2 (1)](https://piotrminkowski.files.wordpress.com/2020/06/spring-microservices-transactions-arch2-1.png?resize=700%2C309)
-
-분산 트랜잭션을 사용해야 하는 시나리오를 하나 작성해보자. 예를 들어 다음의 상황에서는 분산 트랜잭션을 사용해야 한다.
-
-1. Order-service는 주문 엔티티를 만들고 DB에 저장한다. 그 후, 새로운 분산 트랜잭션을 시작한다.
-2. 트랜잭션이 실행된 후, order-service는 product-service에게 저장된 상품의 개수를 업데이트하고, 가격을 알려달라고 요청한다.
-3. 동시에, Product-service는 transaction-server에게 트랜잭션에 참여하고 있다는(?) 정보를 준다.
-4. 그리고 Order-service는 고객 계정에서 필요한 자금을 인출하여 판매자에게 이체하려고 한다.
-5. 마지막으로, 트랜잭션 범위 내의 order-service의 메서드에서 예외가 발생하여 트랜잭션을 롤백한다.
-6. 롤백은 전체 분산 트랜잭션에 대해 진행되어야 한다. 
+* 트랜잭션 시나리오가 하나 추가된다면 관리하기가 힘들어 질 수 있다.
+* 어떤 서비스가 어떤 이벤트를 수신하는지 추측하기 힘들다.
+* 모든 서비스는 호출되는 각 서비스의 이벤트를 들어야 한다.
 
 
 
-### 트랜잭션 서버 구축
+### Command / Orchestration based SAGA
 
-트랜잭션 서버는 MSA 시스템의 모든 마이크로서비스로부터 분산 트랜잭션을 관리할 수 있어야 한다. 새 트랜잭션을 추가하고 상태를 업데이트 하기 위해 다른 모든 마이크로서비스에 사용할 수 있는 REST API를 노출시켜야 한다. 또한, 트랜잭션을 생성한 마이크로서비스로부터 커밋 또는 롤백을 받은 후 비동기 이벤트도 날릴 수 있어야 한다. 이건 RabbitMQ와 같은 message broker를 사용하여 구현할 수 있다. (회사에서는 kafka, 그래서 난 카프카로 구현하는 쪽으로 코드변경 해야 함.) 그리고 모든 마이크로서비스는 들어오는 이벤트를 리스닝할 수 있어야 한다. 그 이벤트가 들어온 후 마이크로 서비스는 로컬 트랜잭션을 커밋/롤백 한다.  
+Command / Orchestration based SAGA에서는 하나의 책임을 가지는 여러 개의 서비스와 그 서비스들 간의 트랜잭션 처리를 담당하는 Orchestrator가 존재한다. Choreography-based SAGA 처럼 각 서비스가 서로 다른 서비스의 이벤트를 청취해야 하는 것 과는 다르게 Orchestrator가 모든 서비스의 이벤트를 청취하고 엔드포인트를 트리거할 책임을 가지고 있다. 
+
+![Image for post](https://miro.medium.com/max/683/1*OxfdbfsX2M7qrv5WsSXAMg.png)
+
+위의 다이어그램에서, Order Orchestrator는 command/reply 방식으로 각 서비스와 통신한다. 
+
+
+
+Orchestration based SAGA에서는 Orchestrator가 한 트랜잭션의 흐름을 모두 알고있다는 것을 알 수 있다. 만약 트랜잭션에서 에러가 난다면, 그 에러로 인해 에러 발생 이전에 대한 모든 것들을 롤백하는 책임 또한 Orchestrator가 가지고 있다. 
+
+Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스템으로 볼 수 있으므로 Orchestration based SAGA를 구현하는 방식 중 하나는 `State Machine Pattern`을 적용하는 것이다. State Machine Pattern은 구현하기 쉽기 때문에 잘 정의된 동작을 구조화하는 데 좋은 패턴이다.
 
 
 
 
 
-### 각주
 
-[^1]: DDD기반의 이벤트 소싱, CQRS를 구현할 때 사용하는 프레임워크
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -19,6 +19,7 @@ class TransactionRouter (
             "/transactions".nest {
                 accept(MediaType.APPLICATION_JSON).nest {
                     POST("/orders", transactionHandler::doOrderTransaction)
+                    GET("/orders/test", transactionHandler::test)
                 }
             }
         }
