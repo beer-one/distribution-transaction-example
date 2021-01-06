@@ -191,6 +191,8 @@ Saga에서의 이벤트 핸들링은 일반적인 이벤트 리스너와는 비�
 
 
 
+
+
 ### Injecting Resources
 
 Saga는 보통 이벤트를 기반으로 상태를 유지하는 것 이상의 일을 한다. Saga는 다른 외부 컴포넌트와도 상호작용한다. 그래서 Saga는 컴포넌트와 상호작용하는 데 필요한 리소스를 접근할 수 있어야 한다. 보통, 이러한 리소스들은 Saga와 그의 상태의 일부가 아니고  그 리소스는 그렇게 지속되면 안된다.(??) 그러나, Saga가 재구성된다면 이벤트가 해당 인스턴스로 라우팅되기 전에 리소스를 주입해야 한다.
@@ -207,9 +209,33 @@ SpringResourceInjector는 리소스를 Saga에 주입하기 위해 Spring에 의
 
 
 
+### Saga Infrastructure
+
+이벤트는 적절한 Saga 인스턴스로 리다이렉트 되어야 한다. 그러기 위해서는, 일부 인프라스트럭쳐 클래스들이 필요하다. Saga에서는 특히 SagaManager와 SagaRepository가 중요하다.
 
 
 
+
+
+#### Saga Manager
+
+이벤트를 핸들링하는 다른 컴포넌트와 마찬가지로 이벤트 프로세서에 의해 처리된다. 하지만 이벤트를 핸들링 하는 Saga는 싱글턴으로 되어있지 않는다. Saga는 각각의 관리해야 하는 라이프사이클을 가지고 있다. 
+
+Axon은 AnnotatedSagaManager를 통해 라이프사이클 관리를 지원한다. AnnotatedSagaManager는 실제 핸들러를 호출하는 이벤트 프로세서가 제공된다. Saga Manager는 관리하고자 하는 saga의 타입과 그 saga의 타입이 저장되고 검색되는 SagaRepository를 이용하여 초기화된다. 하나의 AnnotatedSagaManager는 오직 하나의 Saga 타입을 관리한다.
+
+Configuration API를 사용한다면, Axon은 대부분의 컴포넌트에 적당한 기본값을 사용한다. 그러나 개발에 사용할 SagaStore를 직접 정의하는 것이 좋다. SagaStore는 물리적으로 Saga 인스턴스를 저장하는 매커니즘이다. AnnotatedSagaRepository는 Saga 인스턴스를 저장하고 찾기 위해서 사용된다.
+
+
+
+#### Saga Repository와 Saga Store
+
+SagaRepository는 saga를 저장하고 찾는 책임을 가지고 있으며, SagaRepository는 SagaManager에 의해 사용된다. SagaRepository는 특정한 Saga 인스턴스를 id와 다른 연관된 값을 사용하여 검색할 수 있다.
+
+SagaRepository에는 몇 가지 특별한 요구사항이 있다. 먼저, Saga에서 동시성 처리는 매우 중요한 절차이기 때문에 레포지토리는 반드시 각 개념적인 saga 인스턴스가 JVM에 오직 하나의 인스턴스만 존재하도록 보장해야 한다.
+
+Axon은 AnnotatedSagaRepository 구현체를 제공하는데, 이는 saga 인스턴스를 조회하는 동시에 하나의 saga 인스턴스만 접근할 수 있도록 한다. 그리고 이는 SagaStore를 이용하여 saga 인스턴스의 실제 영속성을 수행한다.
+
+레포지토리에서 사용하기 위해 의존할 애플리케이션에 의해 사용되는 스토리지 엔진을 선택해야 한다. Axon은 JdbcSagaStore, InMemorySagaStore, JpaSagaStore, MongoSagaStore를 지원한다. 
 
 
 
