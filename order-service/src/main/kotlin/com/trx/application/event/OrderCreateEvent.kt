@@ -1,6 +1,6 @@
-package com.trx.presentation.request
+package com.trx.application.event
 
-data class OrderTransactionRequest(
+data class OrderCreateEvent(
     val orderId: Int,
     val productId: Int,
     val count: Int,

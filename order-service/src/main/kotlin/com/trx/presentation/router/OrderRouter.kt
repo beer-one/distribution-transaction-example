@@ -19,7 +19,6 @@ class OrderRouter (
             "/orders".nest {
                 accept(MediaType.APPLICATION_JSON).nest {
                     POST("", orderHandler::createOrder)
-                    GET("/test", orderHandler::test)
                 }
             }
         }

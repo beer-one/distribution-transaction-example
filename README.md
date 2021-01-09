@@ -6,6 +6,8 @@ SpringBoot를 사용하는 MSA 환경에서 분산 트랜잭션을 적용하는 
 
 [SAGA Pattern Blog](https://medium.com/swlh/microservices-architecture-what-is-saga-pattern-and-how-important-is-it-55f56cfedd6b)
 
+https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
+
 ## 접근법
 
 분산 트랜잭션을 적용하는 방법으로는 크게 두 가지가 있다.

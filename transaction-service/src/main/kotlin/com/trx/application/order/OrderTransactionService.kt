@@ -14,7 +14,6 @@ import com.trx.topic.event.CheckProductResultEvent
 import com.trx.presentation.request.OrderTransactionRequest
 import com.trx.utils.KeyGenerator
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.hibernate.Transaction
 import org.springframework.stereotype.Service
 
 @Service

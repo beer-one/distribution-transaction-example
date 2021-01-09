@@ -1,5 +1,6 @@
 package com.trx.domain.entity
 
+import com.trx.domain.enums.OrderStatus
 import javax.persistence.*
 
 @Entity
@@ -16,4 +17,8 @@ data class Order(
 
     @Column(name = "customer_id")
     val customerId: Int
-)
+) {
+
+    @Column(name = "order_status")
+    var orderStatus: OrderStatus = OrderStatus.PENDING
+}
