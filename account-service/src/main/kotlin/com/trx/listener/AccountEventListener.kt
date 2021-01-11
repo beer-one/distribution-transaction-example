@@ -6,9 +6,11 @@ import com.trx.application.event.TransactionEventPublisher
 import com.trx.coroutine.boundedElasticScope
 import com.trx.errors.CustomException
 import com.trx.topic.Topic.APPLY_PAYMENT
-import com.trx.topic.Topic.APPLY_PAYMENT_RESULT
+import com.trx.topic.Topic.PAYMENT_FAILED
+import com.trx.topic.Topic.PAYMENT_SUCCEED
 import com.trx.topic.event.ApplyPaymentEvent
-import com.trx.topic.event.ApplyPaymentResultEvent
+import com.trx.topic.event.PaymentFailed
+import com.trx.topic.event.PaymentSucceed
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -31,15 +33,15 @@ class AccountEventListener(
         try {
             val restBalance = accountCommandService.applyPayment(event)
             transactionEventPublisher.publishEvent(
-                topic = APPLY_PAYMENT_RESULT,
+                topic = PAYMENT_SUCCEED,
                 key = key,
-                event = ApplyPaymentResultEvent.success(restBalance)
+                event = PaymentSucceed(restBalance)
             )
         } catch (e: CustomException) {
             transactionEventPublisher.publishEvent(
-                topic = APPLY_PAYMENT_RESULT,
+                topic = PAYMENT_FAILED,
                 key = key,
-                event = ApplyPaymentResultEvent.fail(e.errorCode.message)
+                event = PaymentFailed(e.errorCode.message)
             )
         }.let {
             boundedElasticScope.launch {

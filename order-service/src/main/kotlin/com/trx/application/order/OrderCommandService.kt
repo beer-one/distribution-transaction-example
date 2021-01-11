@@ -1,6 +1,6 @@
 package com.trx.application.order
 
-import com.trx.application.event.OrderCreateEvent
+import com.trx.topic.event.OrderCreateEvent
 import com.trx.application.event.TransactionEventPublisher
 import com.trx.domain.entity.Order
 import com.trx.domain.repository.OrderRepository

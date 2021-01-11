@@ -5,11 +5,12 @@ import com.trx.application.event.TransactionEventPublisher
 import com.trx.application.product.ProductCommandService
 import com.trx.coroutine.boundedElasticScope
 import com.trx.errors.CustomException
-import com.trx.errors.exception.ProductNotFoundException
 import com.trx.topic.Topic.CHECK_PRODUCT
-import com.trx.topic.Topic.CHECK_PRODUCT_RESULT
+import com.trx.topic.Topic.CHECK_PRODUCT_FAILED
+import com.trx.topic.Topic.CHECK_PRODUCT_SUCCEED
 import com.trx.topic.event.CheckProductEvent
-import com.trx.topic.event.CheckProductResultEvent
+import com.trx.topic.event.CheckProductFailed
+import com.trx.topic.event.CheckProductSucceed
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -32,15 +33,15 @@ class ProductEventListener(
         try {
             val price = productCommandService.checkAndSubtractProduct(event)
             transactionEventPublisher.publishEvent(
-                topic = CHECK_PRODUCT_RESULT,
+                topic = CHECK_PRODUCT_SUCCEED,
                 key = key,
-                event = CheckProductResultEvent.success(price)
+                event = CheckProductSucceed(price)
             )
         } catch (e: CustomException) {
             transactionEventPublisher.publishEvent(
-                topic = CHECK_PRODUCT_RESULT,
+                topic = CHECK_PRODUCT_FAILED,
                 key = key,
-                event = CheckProductResultEvent.fail(e.errorCode.message)
+                event = CheckProductFailed(e.errorCode.message)
             )
         }.let {
             boundedElasticScope.launch {
@@ -48,5 +49,4 @@ class ProductEventListener(
             }
         }
     }
-
 }

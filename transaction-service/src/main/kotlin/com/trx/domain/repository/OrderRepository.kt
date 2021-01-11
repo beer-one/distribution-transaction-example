@@ -1,6 +1,6 @@
 package com.trx.domain.repository
 
-import com.trx.domain.entity.Product
 import org.springframework.data.jpa.repository.JpaRepository
+import com.trx.domain.entity.Order
 
-interface ProductRepository : JpaRepository<Product, Int>
+interface OrderRepository : JpaRepository<Order, Int>

@@ -243,7 +243,13 @@ Axon은 AnnotatedSagaRepository 구현체를 제공하는데, 이는 saga 인스
 
 
 
+## 현 프로젝트
 
+
+
+### FSM
+
+![FSM](/Users/yunseowon/Desktop/FSM.png)
 
 
 

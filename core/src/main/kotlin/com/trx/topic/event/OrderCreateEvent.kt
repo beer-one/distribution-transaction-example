@@ -1,4 +1,4 @@
-package com.trx.application.event
+package com.trx.topic.event
 
 data class OrderCreateEvent(
     val orderId: Int,

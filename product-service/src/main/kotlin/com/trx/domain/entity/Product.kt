@@ -24,4 +24,8 @@ data class Product(
             count -= subtractCount
         }
     }
+
+    fun increment(count: Int) {
+        this.count += count
+    }
 }
