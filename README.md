@@ -245,11 +245,14 @@ Axon은 AnnotatedSagaRepository 구현체를 제공하는데, 이는 saga 인스
 
 ## 현 프로젝트
 
+Orchestration based SAGA로 구현해볼 예정이다.
+
+[State Pattern](https://github.com/YunSeoWon/TIL-1YEAR/tree/main/design-patterns/state-machine)을 최대한 적용시켜 구현하는 것이 목표이다.
 
 
 ### FSM
 
-![FSM](/Users/yunseowon/Desktop/FSM.png)
+![FSM](https://user-images.githubusercontent.com/35602698/104201797-77064480-546d-11eb-9fcc-014bbd4a38ed.png)
 
 
 
