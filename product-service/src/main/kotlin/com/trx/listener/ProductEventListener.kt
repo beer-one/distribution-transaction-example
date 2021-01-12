@@ -14,6 +14,7 @@ import com.trx.topic.event.CheckProductSucceed
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.listener.AcknowledgingMessageListener
 import org.springframework.kafka.support.Acknowledgment
@@ -26,9 +27,13 @@ class ProductEventListener(
     private val transactionEventPublisher: TransactionEventPublisher
 ) : AcknowledgingMessageListener<String, String> {
 
-    @KafkaListener(topics = [CHECK_PRODUCT], groupId = "product-consumer", containerFactory = "kafkaListenerContainerFactory")
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [CHECK_PRODUCT], groupId = "product-consumer", containerFactory = "productEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductEvent::class.java)
+
+        logger.info("Topic: $CHECK_PRODUCT, key: $key, event: $event")
 
         try {
             val price = productCommandService.checkAndSubtractProduct(event)

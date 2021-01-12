@@ -14,6 +14,7 @@ import com.trx.topic.event.PaymentSucceed
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.listener.AcknowledgingMessageListener
 import org.springframework.kafka.support.Acknowledgment
@@ -26,9 +27,13 @@ class AccountEventListener(
     private val transactionEventPublisher: TransactionEventPublisher
 ) : AcknowledgingMessageListener<String, String> {
 
-    @KafkaListener(topics = [APPLY_PAYMENT], groupId = "account-consumer", containerFactory = "kafkaListenerContainerFactory")
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [APPLY_PAYMENT], groupId = "account-consumer", containerFactory = "accountEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = (data.key() to objectMapper.readValue(data.value(), ApplyPaymentEvent::class.java))
+
+        logger.info("Topic: $APPLY_PAYMENT, key: $key, event: $event")
 
         try {
             val restBalance = accountCommandService.applyPayment(event)
@@ -49,5 +54,4 @@ class AccountEventListener(
             }
         }
     }
-
 }

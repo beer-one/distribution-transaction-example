@@ -23,7 +23,3 @@ feign:
       default:
         connectTimeout: 1
         readTimeout: 4000
-
-logging:
-  level:
-    org.springframework: WARN

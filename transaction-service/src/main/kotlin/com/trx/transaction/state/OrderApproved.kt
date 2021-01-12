@@ -22,5 +22,5 @@ class OrderApproved (
 
             orderRepository.save(it)
         }
-    }
+    } 
 }

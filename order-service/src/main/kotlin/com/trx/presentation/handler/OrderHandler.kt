@@ -1,6 +1,7 @@
 package com.trx.presentation.handler
 
 import com.trx.application.order.OrderCommandService
+import com.trx.application.order.OrderQueryService
 import com.trx.errors.exception.IncorrectFormatBodyException
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
@@ -10,7 +11,8 @@ import org.springframework.web.reactive.function.server.ServerResponse.ok
 
 @Component
 class OrderHandler(
-    private val orderCommandService: OrderCommandService
+    private val orderCommandService: OrderCommandService,
+    private val orderQueryService: OrderQueryService
 ) {
 
     suspend fun createOrder(request: ServerRequest): ServerResponse {
@@ -20,5 +22,14 @@ class OrderHandler(
         return orderCommandService.create(orderRequest)
             .awaitSingle()
             .let { ok().bodyValueAndAwait(it) }
+    }
+
+    suspend fun getAll(request: ServerRequest): ServerResponse {
+        val customerId = request.queryParamOrNull("customerId")?.toInt()
+            ?: throw Exception()
+
+        return orderQueryService.getAll(customerId).let {
+            ok().bodyValueAndAwait(it)
+        }
     }
 }

@@ -29,6 +29,3 @@ spring:
       ack-mode: manual
       poll-timeout: 5000
 
-logging:
-  level:
-    org.springframework: TRACE

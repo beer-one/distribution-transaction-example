@@ -13,7 +13,8 @@ object Topic {
     const val CHECK_PRODUCT_ROLLBACK = "CHECK-PRODUCT-ROLLBACK"
 
     // transaction
-    const val ORDER_CREATE_TRANSACTION = "ORDER_CREATE_TRANSACTION"
+    const val ORDER_CREATED = "ORDER-CREATED"
 
-    const val ORDER_CANCELED = "ORDER_CANCELED"
+    const val ORDER_CANCELED = "ORDER-CANCELED"
+    const val ORDER_APPROVED = "ORDER-APPROVED"
 }

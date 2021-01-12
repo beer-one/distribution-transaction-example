@@ -17,7 +17,7 @@ spring:
       ack-mode: manual
       poll-timeout: 5000
   datasource:
-    url: jdbc:mysql://localhost:3306/saga_product?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mysql://localhost:3306/saga_order?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
     username: saga-tester
     password: sagatest
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -32,7 +32,3 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
 
-
-logging:
-  level:
-    org.springframework: WARN
