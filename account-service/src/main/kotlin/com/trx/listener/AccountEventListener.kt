@@ -43,10 +43,12 @@ class AccountEventListener(
                 event = PaymentSucceed(restBalance)
             )
         } catch (e: CustomException) {
+            logger.error("[Error]: ", e)
+
             transactionEventPublisher.publishEvent(
                 topic = PAYMENT_FAILED,
                 key = key,
-                event = PaymentFailed(e.errorCode.message)
+                event = PaymentFailed(e.message!!)
             )
         }.let {
             boundedElasticScope.launch {

@@ -16,7 +16,7 @@ data class Account(
     var balance: Int
 ) {
     fun applyPayment(price: Int): Int {
-        if (balance < price) throw InsufficientBalanceException()
+        if (balance < price) throw InsufficientBalanceException(id, balance, price)
 
         balance -= price
 

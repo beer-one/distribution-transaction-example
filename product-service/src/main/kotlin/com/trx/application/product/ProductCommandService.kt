@@ -17,13 +17,13 @@ class ProductCommandService (
     fun checkAndSubtractProduct(event: CheckProductEvent): Int {
         return productRepository.findByIdOrNull(event.productId)
             ?.subtract(event.count)
-            ?: throw ProductNotFoundException()
+            ?: throw ProductNotFoundException(event.productId)
     }
 
     @Transactional
     fun incrementProductCount(event: ProductRollBackEvent) {
         productRepository.findByIdOrNull(event.productId)
             ?.increment(event.count)
-            ?: throw ProductNotFoundException()
+            ?: throw ProductNotFoundException(event.productId)
     }
 }

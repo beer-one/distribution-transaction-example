@@ -17,7 +17,7 @@ class OrderPaymentFinished (
 
     override suspend fun operate(saga: OrderSaga) {
         eventPublisher.publishEvent(
-            Topic.APPLY_PAYMENT,
+            Topic.ORDER_APPROVED,
             saga.key,
             OrderApproveEvent(saga.orderId)
         ).awaitSingle()

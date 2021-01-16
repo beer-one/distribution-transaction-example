@@ -1,7 +1,10 @@
 package com.trx.errors.exception
 
 import com.trx.errors.CustomException
-import com.trx.errors.code.ProductErrorCode
 
-class ProductNotFoundException: CustomException(ProductErrorCode.NOT_FOUND)
-class ProductOutOfStockException: CustomException(ProductErrorCode.OUT_OF_STOCK)
+class ProductNotFoundException(productId: Int): CustomException() {
+    override val message: String = "(productId = $productId): 상품이 없습니다."
+}
+class ProductOutOfStockException(productId: Int, current: Int, required: Int): CustomException() {
+    override val message: String = "(productId = $productId): 상품의 재고가 부족합니다. current: $current, required: $required"
+}

@@ -14,8 +14,8 @@ class AccountCommandService (
 
     @Transactional
     fun applyPayment(event: ApplyPaymentEvent): Int {
-        return accountRepository.findByIdOrNull(event.customerId)
+        return accountRepository.findByCustomerId(event.customerId)
             ?.applyPayment(event.price)
-            ?: throw AccountNotFoundException()
+            ?: throw AccountNotFoundException(event.customerId)
     }
 }

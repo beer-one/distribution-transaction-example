@@ -43,10 +43,12 @@ class ProductEventListener(
                 event = CheckProductSucceed(price)
             )
         } catch (e: CustomException) {
+            logger.error("[Error]: ", e)
+
             transactionEventPublisher.publishEvent(
                 topic = CHECK_PRODUCT_FAILED,
                 key = key,
-                event = CheckProductFailed(e.errorCode.message)
+                event = CheckProductFailed(e.message!!)
             )
         }.let {
             boundedElasticScope.launch {
