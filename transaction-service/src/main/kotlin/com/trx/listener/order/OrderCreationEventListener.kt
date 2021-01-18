@@ -21,8 +21,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OrderCreationEventListener(
-    private val objectMapper: ObjectMapper,
-    private val eventPublisher: TransactionEventPublisher
+    private val objectMapper: ObjectMapper
 ) : AcknowledgingMessageListener<String, String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -33,7 +32,7 @@ class OrderCreationEventListener(
 
         logger.info("Topic: $ORDER_CREATED, key: $key, event: $event")
 
-        val orderSaga = OrderSaga.init(eventPublisher, key, event)
+        val orderSaga = OrderSaga.init(key, event)
 
         boundedElasticScope.launch {
             OrderSagaInMemoryRepository.save(key, orderSaga)

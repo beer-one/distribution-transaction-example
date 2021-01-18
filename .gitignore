@@ -31,3 +31,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### mysql volume ###
+dockers/mysql/data*
+
+## kafka volume ##
+dockers/kafka/volume*

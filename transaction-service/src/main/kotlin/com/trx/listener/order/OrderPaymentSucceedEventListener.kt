@@ -20,8 +20,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OrderPaymentSucceedEventListener(
-    private val objectMapper: ObjectMapper,
-    private val eventPublisher: TransactionEventPublisher
+    private val objectMapper: ObjectMapper
 ) : AcknowledgingMessageListener<String, String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -35,7 +34,7 @@ class OrderPaymentSucceedEventListener(
         boundedElasticScope.launch {
             OrderSagaInMemoryRepository.findByID(key)?.let {
                 it.changeStateAndOperate(
-                    OrderPaymentFinished(eventPublisher)
+                    OrderPaymentFinished()
                 )
             }
         }

@@ -1,6 +1,5 @@
 package com.trx.transaction.state
 
-import com.trx.application.event.TransactionEventPublisher
 import com.trx.topic.Topic
 import com.trx.topic.event.OrderApproveEvent
 import com.trx.transaction.saga.OrderSaga
@@ -11,12 +10,10 @@ import kotlinx.coroutines.reactive.awaitSingle
  *
  * @see com.trx.transaction.state.OrderApproved (next state)
  */
-class OrderPaymentFinished (
-    private val eventPublisher: TransactionEventPublisher
-) : OrderSagaState {
+class OrderPaymentFinished: OrderSagaState {
 
     override suspend fun operate(saga: OrderSaga) {
-        eventPublisher.publishEvent(
+        saga.publishEvent(
             Topic.ORDER_APPROVED,
             saga.key,
             OrderApproveEvent(saga.orderId)

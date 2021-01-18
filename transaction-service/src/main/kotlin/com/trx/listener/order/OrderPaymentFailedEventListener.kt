@@ -20,8 +20,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OrderPaymentFailedEventListener(
-    private val objectMapper: ObjectMapper,
-    private val eventPublisher: TransactionEventPublisher
+    private val objectMapper: ObjectMapper
 ) : AcknowledgingMessageListener<String, String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -31,11 +30,12 @@ class OrderPaymentFailedEventListener(
         val (key, event) = data.key() to objectMapper.readValue(data.value(), PaymentFailed::class.java)
 
         logger.info("Topic: $PAYMENT_FAILED, key: $key, event: $event")
+        logger.info("Failure reason: ${event.failureReason}")
 
         boundedElasticScope.launch {
             OrderSagaInMemoryRepository.findByID(key)?.let {
                 it.changeStateAndOperate(
-                    OrderPaymentFinished(eventPublisher)
+                    OrderPaymentFinished()
                 )
             }
         }

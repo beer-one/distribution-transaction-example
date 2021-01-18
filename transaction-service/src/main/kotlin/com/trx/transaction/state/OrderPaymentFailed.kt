@@ -1,6 +1,5 @@
 package com.trx.transaction.state
 
-import com.trx.application.event.TransactionEventPublisher
 import com.trx.topic.Topic
 import com.trx.topic.event.*
 import com.trx.topic.event.OrderCancelEvent
@@ -12,14 +11,12 @@ import kotlinx.coroutines.reactive.awaitSingle
  *
  * @see com.trx.transaction.state.OrderCanceled (next state)
  */
-class OrderPaymentFailed (
-    private val eventPublisher: TransactionEventPublisher
-) : OrderSagaState, CompensatingSaga {
+class OrderPaymentFailed: OrderSagaState, CompensatingSaga {
 
     override suspend fun operate(saga: OrderSaga) {
         doCompensatingTransaction(saga)
 
-        eventPublisher.publishEvent(
+        saga.publishEvent(
             Topic.ORDER_CANCELED,
             saga.key,
             OrderCancelEvent(saga.orderId)
@@ -27,7 +24,7 @@ class OrderPaymentFailed (
     }
 
     override suspend fun doCompensatingTransaction(saga: OrderSaga) {
-        eventPublisher.publishEvent(
+        saga.publishEvent(
             Topic.CHECK_PRODUCT_ROLLBACK,
             saga.key,
             ProductRollBackEvent(saga.productId, saga.count)
