@@ -3,10 +3,11 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/saga_order?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
+    url: jdbc:mysql://127.0.0.1:3306/saga_order?allowPublicKeyRetrieval=true&useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC
     username: saga-tester
     password: sagatest
     driver-class-name: com.mysql.cj.jdbc.Driver
+    validation-query: SELECT 1
 
   jpa:
     show-sql: true
