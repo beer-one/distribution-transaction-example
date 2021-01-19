@@ -11,6 +11,7 @@ import reactor.core.publisher.Mono
 import reactor.kafka.sender.SenderResult
 
 class OrderSaga (
+    private val eventPublisher: TransactionEventPublisher,
     private var state: OrderSagaState,
     val orderId: Int,
     val customerId: Int,
@@ -19,14 +20,13 @@ class OrderSaga (
     val key: String
 ) {
 
-    @Autowired
-    private lateinit var eventPublisher: TransactionEventPublisher
-
     companion object {
         fun init(
+            eventPublisher: TransactionEventPublisher,
             key: String,
             event: OrderCreateEvent
         ): OrderSaga = OrderSaga(
+            eventPublisher = eventPublisher,
             state = OrderPending(),
             orderId = event.orderId,
             customerId = event.customerId,
