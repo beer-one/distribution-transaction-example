@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.web.reactive.config.EnableWebFlux
 
 @EnableKafka
+@EnableWebFlux
 @ConfigurationPropertiesScan
 @SpringBootApplication
 class AccountServiceApplication

@@ -1,7 +1,7 @@
 package com.trx.infrastructure.configuration
 
-import com.trx.listener.ProductEventListener
-import com.trx.listener.ProductRollBackEventListener
+import com.trx.presentation.listener.ProductEventListener
+import com.trx.presentation.listener.ProductRollBackEventListener
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

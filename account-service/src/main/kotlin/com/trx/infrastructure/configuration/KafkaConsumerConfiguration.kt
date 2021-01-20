@@ -1,6 +1,6 @@
 package com.trx.infrastructure.configuration
 
-import com.trx.listener.AccountEventListener
+import com.trx.presentation.listener.AccountEventListener
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
