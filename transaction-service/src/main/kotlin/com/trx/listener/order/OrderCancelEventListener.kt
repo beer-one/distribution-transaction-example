@@ -37,7 +37,7 @@ class OrderCancelEventListener(
         boundedElasticScope.launch {
             OrderSagaInMemoryRepository.findByID(key)?.let {
                 it.changeStateAndOperate(
-                    OrderCanceled(orderRepository)
+                    OrderCanceled(orderRepository, event.failureReason)
                 )
 
                 OrderSagaInMemoryRepository.deleteById(key)

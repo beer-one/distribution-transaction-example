@@ -20,5 +20,19 @@ data class Order(
 ) {
 
     @Column(name = "order_status")
-    var orderStatus: OrderStatus = OrderStatus.PENDING
+    var status: OrderStatus = OrderStatus.PENDING
+    private set
+
+    @Column(name = "canceled_reason")
+    var canceledReason: String = ""
+    private set
+
+    fun approve() {
+        status = OrderStatus.APPROVED
+    }
+
+    fun cancel(reason: String) {
+        status = OrderStatus.CANCELED
+        canceledReason = reason
+    }
 }

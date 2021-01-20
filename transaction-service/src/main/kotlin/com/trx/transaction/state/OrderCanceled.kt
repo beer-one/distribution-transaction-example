@@ -13,12 +13,13 @@ import org.springframework.data.repository.findByIdOrNull
  * 편의상 도메인 객체 주입.. (OrderRepository)
  */
 class OrderCanceled (
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val failureReason: String
 ) : OrderSagaState {
 
     override suspend fun operate(saga: OrderSaga) {
         orderRepository.findByIdOrNull(saga.orderId)?.let {
-            it.orderStatus = OrderStatus.CANCELED
+            it.cancel(failureReason)
 
             orderRepository.save(it)
         }

@@ -21,4 +21,7 @@ data class Order(
 
     @Column(name = "order_status")
     var orderStatus: OrderStatus = OrderStatus.PENDING
+
+    @Column(name = "canceled_reason")
+    val canceledReason: String = ""
 }

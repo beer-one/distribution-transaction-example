@@ -11,7 +11,9 @@ import kotlinx.coroutines.reactive.awaitSingle
  *
  * @see com.trx.transaction.state.OrderCanceled (next state)
  */
-class OrderPaymentFailed: OrderSagaState, CompensatingSaga {
+class OrderPaymentFailed(
+    val failureReason: String
+): OrderSagaState, CompensatingSaga {
 
     override suspend fun operate(saga: OrderSaga) {
         doCompensatingTransaction(saga)
@@ -19,7 +21,7 @@ class OrderPaymentFailed: OrderSagaState, CompensatingSaga {
         saga.publishEvent(
             Topic.ORDER_CANCELED,
             saga.key,
-            OrderCancelEvent(saga.orderId)
+            OrderCancelEvent(saga.orderId, failureReason)
         ).awaitSingle()
     }
 

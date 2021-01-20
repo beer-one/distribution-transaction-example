@@ -1,6 +1,5 @@
 package com.trx.transaction.state
 
-import com.trx.domain.enums.OrderStatus
 import com.trx.domain.repository.OrderRepository
 import com.trx.transaction.saga.OrderSaga
 import org.springframework.data.repository.findByIdOrNull
@@ -18,7 +17,7 @@ class OrderApproved (
 
     override suspend fun operate(saga: OrderSaga) {
         orderRepository.findByIdOrNull(saga.orderId)?.let {
-            it.orderStatus = OrderStatus.APPROVED
+            it.approve()
 
             orderRepository.save(it)
         }

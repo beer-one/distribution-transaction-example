@@ -9,7 +9,7 @@ import kotlinx.coroutines.reactive.awaitSingle
  * @see com.trx.transaction.state.OrderSagaState
  *
  * @see com.trx.transaction.state.OrderProductChecked if checking product success
- * @see com.trx.transaction.state.OrderProductOutOfStocked if checking product failed
+ * @see com.trx.transaction.state.OrderProductCheckFailed if checking product failed
  */
 class OrderPending : OrderSagaState {
 

@@ -1,12 +1,11 @@
 package com.trx.listener.order
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.trx.application.event.TransactionEventPublisher
 import com.trx.coroutine.boundedElasticScope
 import com.trx.topic.Topic.CHECK_PRODUCT_FAILED
 import com.trx.topic.event.CheckProductFailed
 import com.trx.transaction.OrderSagaInMemoryRepository
-import com.trx.transaction.state.OrderProductOutOfStocked
+import com.trx.transaction.state.OrderProductCheckFailed
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -35,7 +34,7 @@ class OrderProductCheckFailedEventListener(
         boundedElasticScope.launch {
             OrderSagaInMemoryRepository.findByID(key)?.let {
                 it.changeStateAndOperate(
-                    OrderProductOutOfStocked()
+                    OrderProductCheckFailed(event.failureReason)
                 )
             }
         }
