@@ -18,7 +18,9 @@ class ProductRouter (
             "/products".nest {
                 accept(MediaType.APPLICATION_JSON).nest {
                     GET("", handler::search)
+                    POST("", handler::create)
                     GET("/{id}", handler::getOne)
+                    PUT("/{id}", handler::add)
                 }
             }
         }

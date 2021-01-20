@@ -18,6 +18,8 @@ class AccountRouter (
             "/accounts".nest {
                 accept(MediaType.APPLICATION_JSON).nest {
                     GET("", handler::getAccount)
+                    POST("", handler::create)
+                    PUT("", handler::deposit)
                 }
             }
         }

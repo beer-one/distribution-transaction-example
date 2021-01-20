@@ -22,4 +22,8 @@ data class Account(
 
         return balance
     }
+
+    fun deposit(money: Int) {
+        balance += money
+    }
 }
