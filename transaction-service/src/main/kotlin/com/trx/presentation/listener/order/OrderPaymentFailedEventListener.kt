@@ -5,6 +5,7 @@ import com.trx.coroutine.boundedElasticScope
 import com.trx.topic.Topic.PAYMENT_FAILED
 import com.trx.topic.event.*
 import com.trx.transaction.OrderSagaInMemoryRepository
+import com.trx.transaction.state.OrderPaymentFailed
 import com.trx.transaction.state.OrderPaymentFinished
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -34,7 +35,7 @@ class OrderPaymentFailedEventListener(
         boundedElasticScope.launch {
             OrderSagaInMemoryRepository.findByID(key)?.let {
                 it.changeStateAndOperate(
-                    OrderPaymentFinished()
+                    OrderPaymentFailed(event.failureReason)
                 )
             }
         }
