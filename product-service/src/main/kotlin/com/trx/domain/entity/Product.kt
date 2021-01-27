@@ -18,7 +18,7 @@ data class Product(
     val price: Int = 0
 ) {
     fun subtract(subtractCount: Int): Int {
-        if (count < subtractCount) throw ProductOutOfStockException(id, count, subtractCount)
+        if (count < subtractCount) throw ProductOutOfStockException(count, subtractCount)
 
         return (price * subtractCount).also {
             count -= subtractCount
