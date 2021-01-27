@@ -30,12 +30,13 @@ class OrderPaymentSucceedEventListener(
 
         logger.info("Topic: $PAYMENT_SUCCEED, key: $key, event: $event")
 
-        boundedElasticScope.launch {
-            OrderSagaInMemoryRepository.findByID(key)?.let {
+        OrderSagaInMemoryRepository.findByID(key)?.let {
+            boundedElasticScope.launch {
                 it.changeStateAndOperate(
                     OrderPaymentFinished()
                 )
             }
+            acknowledgment.acknowledge()
         }
     }
 }

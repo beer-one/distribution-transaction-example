@@ -35,9 +35,10 @@ class OrderCreationEventListener(
 
         val orderSaga = OrderSaga.init(eventPublisher, key, event)
 
+        OrderSagaInMemoryRepository.save(key, orderSaga)
         boundedElasticScope.launch {
-            OrderSagaInMemoryRepository.save(key, orderSaga)
             orderSaga.operate()
         }
+        acknowledgment.acknowledge()
     }
 }

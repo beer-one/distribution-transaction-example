@@ -34,14 +34,14 @@ class OrderApproveEventListener(
 
         logger.info("Topic: $ORDER_APPROVED, key: $key, event: $event")
 
-        boundedElasticScope.launch {
-            OrderSagaInMemoryRepository.findByID(key)?.let {
+        OrderSagaInMemoryRepository.findByID(key)?.let {
+            boundedElasticScope.launch {
                 it.changeStateAndOperate(
                     OrderApproved(orderRepository)
                 )
-
-                OrderSagaInMemoryRepository.deleteById(key)
             }
+            OrderSagaInMemoryRepository.deleteById(key)
+            acknowledgment.acknowledge()
         }
     }
 }

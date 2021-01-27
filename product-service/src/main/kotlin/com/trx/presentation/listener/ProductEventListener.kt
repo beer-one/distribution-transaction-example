@@ -55,5 +55,7 @@ class ProductEventListener(
                 it.awaitFirstOrNull()
             }
         }
+
+        acknowledgment.acknowledge()
     }
 }

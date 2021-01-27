@@ -30,12 +30,13 @@ class OrderProductCheckSucceedEventListener(
 
         logger.info("Topic: $CHECK_PRODUCT_SUCCEED, key: $key, event: $event")
 
-        boundedElasticScope.launch {
-            OrderSagaInMemoryRepository.findByID(key)?.let {
+        OrderSagaInMemoryRepository.findByID(key)?.let {
+            boundedElasticScope.launch {
                 it.changeStateAndOperate(
                     OrderProductChecked(event.totalPrice)
                 )
             }
+            acknowledgment.acknowledge()
         }
     }
 }

@@ -55,5 +55,7 @@ class AccountEventListener(
                 it.awaitFirstOrNull()
             }
         }
+
+        acknowledgment.acknowledge()
     }
 }

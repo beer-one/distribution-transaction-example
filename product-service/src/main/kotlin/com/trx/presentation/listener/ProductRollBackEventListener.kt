@@ -26,6 +26,7 @@ class ProductRollBackEventListener(
         logger.info("Topic: $CHECK_PRODUCT_ROLLBACK, key: $key, event: $event")
 
         productCommandService.incrementProductCount(event)
+        acknowledgment.acknowledge()
     }
 
 }

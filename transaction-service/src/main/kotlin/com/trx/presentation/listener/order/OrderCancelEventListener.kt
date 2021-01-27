@@ -34,14 +34,14 @@ class OrderCancelEventListener(
 
         logger.info("Topic: $ORDER_CANCELED, key: $key, event: $event")
 
-        boundedElasticScope.launch {
-            OrderSagaInMemoryRepository.findByID(key)?.let {
+        OrderSagaInMemoryRepository.findByID(key)?.let {
+            boundedElasticScope.launch {
                 it.changeStateAndOperate(
                     OrderCanceled(orderRepository, event.failureReason)
                 )
-
-                OrderSagaInMemoryRepository.deleteById(key)
             }
+            OrderSagaInMemoryRepository.deleteById(key)
+            acknowledgment.acknowledge()
         }
     }
 }

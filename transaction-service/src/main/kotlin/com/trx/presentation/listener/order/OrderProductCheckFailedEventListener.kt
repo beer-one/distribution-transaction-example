@@ -31,12 +31,13 @@ class OrderProductCheckFailedEventListener(
         logger.info("Topic: $CHECK_PRODUCT_FAILED, key: $key, event: $event")
         logger.info("Failure reason: ${event.failureReason}")
 
-        boundedElasticScope.launch {
-            OrderSagaInMemoryRepository.findByID(key)?.let {
+        OrderSagaInMemoryRepository.findByID(key)?.let {
+            boundedElasticScope.launch {
                 it.changeStateAndOperate(
                     OrderProductCheckFailed(event.failureReason)
                 )
             }
+            acknowledgment.acknowledge()
         }
     }
 }

@@ -32,12 +32,13 @@ class OrderPaymentFailedEventListener(
         logger.info("Topic: $PAYMENT_FAILED, key: $key, event: $event")
         logger.info("Failure reason: ${event.failureReason}")
 
-        boundedElasticScope.launch {
-            OrderSagaInMemoryRepository.findByID(key)?.let {
+        OrderSagaInMemoryRepository.findByID(key)?.let {
+            boundedElasticScope.launch {
                 it.changeStateAndOperate(
                     OrderPaymentFailed(event.failureReason)
                 )
             }
+            acknowledgment.acknowledge()
         }
     }
 }
