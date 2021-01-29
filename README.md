@@ -191,7 +191,8 @@ SAGA 실습 프로젝트 구조는 아래 그림과 같다.
 
 
 
-![image-20210127235730656](/Users/yunseowon/Library/Application Support/typora-user-images/image-20210127235730656.png)
+![스크린샷 2021-01-27 오후 11 46 47](https://user-images.githubusercontent.com/35602698/106020964-a4a6eb00-6107-11eb-8d19-48fb321c6171.png)
+
 
 
 
