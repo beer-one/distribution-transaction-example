@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import com.trx.presentation.request.OrderRequest
 import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.web.reactive.function.server.ServerResponse.noContent
 import org.springframework.web.reactive.function.server.ServerResponse.ok
 
 @Component
@@ -31,5 +32,14 @@ class OrderHandler(
         return orderQueryService.getAll(customerId).let {
             ok().bodyValueAndAwait(it)
         }
+    }
+
+    suspend fun deleteAll(request: ServerRequest): ServerResponse {
+        val customerId = request.queryParamOrNull("customerId")?.toInt()
+            ?: throw Exception()
+
+        orderCommandService.deleteAll(customerId)
+
+        return noContent().buildAndAwait()
     }
 }

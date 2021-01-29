@@ -24,9 +24,15 @@ data class Order(
     private set
 
     @Column(name = "canceled_reason")
-    val canceledReason: String = ""
+    var canceledReason: String = ""
+    private set
 
-    fun modifyStatus(status: OrderStatus) {
-        this.orderStatus = status
+    fun approve() {
+        this.orderStatus = OrderStatus.APPROVED
+    }
+
+    fun cancel(reason: String) {
+        this.orderStatus = OrderStatus.CANCELED
+        this.canceledReason = reason
     }
 }

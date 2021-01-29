@@ -3,7 +3,6 @@ package com.trx.presentation.listener
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.application.order.OrderCommandService
 import com.trx.coroutine.boundedElasticScope
-import com.trx.domain.enums.OrderStatus
 import com.trx.topic.Topic.ORDER_CANCELED
 import com.trx.topic.event.OrderCancelEvent
 import kotlinx.coroutines.launch
@@ -34,7 +33,7 @@ class OrderCancelEventListener(
         logger.info("Topic: $ORDER_CANCELED, key: $key, event: $event")
 
         boundedElasticScope.launch {
-            orderCommandService.modifyOrderStatus(event.orderId, OrderStatus.CANCELED)
+            orderCommandService.cancel(event.orderId, event.failureReason)
         }
 
         acknowledgment.acknowledge()

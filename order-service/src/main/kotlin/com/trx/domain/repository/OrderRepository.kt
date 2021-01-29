@@ -5,4 +5,5 @@ import com.trx.domain.entity.Order
 
 interface OrderRepository : JpaRepository<Order, Int> {
     fun findByCustomerId(customerId: Int): List<Order>
+    fun deleteByCustomerId(customerId: Int): Long
 }

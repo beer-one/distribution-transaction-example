@@ -34,7 +34,7 @@ class OrderApproveEventListener(
         logger.info("Topic: $ORDER_APPROVED, key: $key, event: $event")
 
         boundedElasticScope.launch {
-            orderCommandService.modifyOrderStatus(event.orderId, OrderStatus.APPROVED)
+            orderCommandService.approve(event.orderId)
         }
 
         acknowledgment.acknowledge()

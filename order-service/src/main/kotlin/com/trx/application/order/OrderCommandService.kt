@@ -46,8 +46,19 @@ class OrderCommandService (
     }
 
     @Transactional
-    fun modifyOrderStatus(id: Int, status: OrderStatus) {
+    fun approve(id: Int) {
         repository.findByIdOrNull(id)
-            ?.modifyStatus(status)
+            ?.approve()
+    }
+
+    @Transactional
+    fun cancel(id: Int, cancelReason: String) {
+        repository.findByIdOrNull(id)
+            ?.cancel(cancelReason)
+    }
+
+    @Transactional
+    fun deleteAll(customerId: Int) {
+        repository.deleteByCustomerId(customerId)
     }
 }

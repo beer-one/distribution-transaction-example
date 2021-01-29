@@ -20,6 +20,7 @@ class OrderRouter (
                 accept(MediaType.APPLICATION_JSON).nest {
                     POST("", orderHandler::createOrder)
                     GET("", orderHandler::getAll)
+                    DELETE("", orderHandler::deleteAll)
                 }
             }
         }
