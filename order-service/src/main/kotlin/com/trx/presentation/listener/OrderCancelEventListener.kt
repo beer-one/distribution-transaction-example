@@ -27,7 +27,7 @@ class OrderCancelEventListener(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = [ORDER_CANCELED], groupId = "transaction-orchestrator", containerFactory = "orderCancelEventListenerContainerFactory")
+    @KafkaListener(topics = [ORDER_CANCELED], groupId = "order-consumer", containerFactory = "orderCancelEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = data.key() to objectMapper.readValue(data.value(), OrderCancelEvent::class.java)
 

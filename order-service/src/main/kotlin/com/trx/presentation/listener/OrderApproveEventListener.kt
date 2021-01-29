@@ -27,7 +27,7 @@ class OrderApproveEventListener(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = [ORDER_APPROVED], groupId = "transaction-orchestrator", containerFactory = "orderApproveEventListenerContainerFactory")
+    @KafkaListener(topics = [ORDER_APPROVED], groupId = "order-consumer", containerFactory = "orderApproveEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = data.key() to objectMapper.readValue(data.value(), OrderApproveEvent::class.java)
 
@@ -36,7 +36,7 @@ class OrderApproveEventListener(
         boundedElasticScope.launch {
             orderCommandService.modifyOrderStatus(event.orderId, OrderStatus.APPROVED)
         }
-        
+
         acknowledgment.acknowledge()
     }
 }

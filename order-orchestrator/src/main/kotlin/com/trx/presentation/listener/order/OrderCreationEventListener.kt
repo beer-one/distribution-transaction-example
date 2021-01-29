@@ -27,7 +27,7 @@ class OrderCreationEventListener(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = [ORDER_CREATED], groupId = "transaction-orchestrator", containerFactory = "orderCreationEventListenerContainerFactory")
+    @KafkaListener(topics = [ORDER_CREATED], groupId = "order-orchestrator", containerFactory = "orderCreationEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = data.key() to objectMapper.readValue(data.value(), OrderCreateEvent::class.java)
 

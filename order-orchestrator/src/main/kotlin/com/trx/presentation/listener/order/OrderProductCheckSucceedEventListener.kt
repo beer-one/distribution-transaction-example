@@ -24,7 +24,7 @@ class OrderProductCheckSucceedEventListener(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = [CHECK_PRODUCT_SUCCEED], groupId = "transaction-orchestrator", containerFactory = "orderProductCheckSucceedEventListenerContainerFactory")
+    @KafkaListener(topics = [CHECK_PRODUCT_SUCCEED], groupId = "order-orchestrator", containerFactory = "orderProductCheckSucceedEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
         val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductSucceed::class.java)
 
