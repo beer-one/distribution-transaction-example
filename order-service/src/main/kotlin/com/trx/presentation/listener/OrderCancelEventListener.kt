@@ -1,12 +1,11 @@
-package com.trx.presentation.listener.order
+package com.trx.presentation.listener
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.trx.application.order.OrderCommandService
 import com.trx.coroutine.boundedElasticScope
-import com.trx.domain.repository.OrderRepository
+import com.trx.domain.enums.OrderStatus
 import com.trx.topic.Topic.ORDER_CANCELED
 import com.trx.topic.event.OrderCancelEvent
-import com.trx.transaction.OrderSagaInMemoryRepository
-import com.trx.transaction.state.OrderCanceled
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -23,7 +22,7 @@ import org.springframework.stereotype.Component
 @Component
 class OrderCancelEventListener(
     private val objectMapper: ObjectMapper,
-    private val orderRepository: OrderRepository
+    private val orderCommandService: OrderCommandService
 ) : AcknowledgingMessageListener<String, String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -34,14 +33,10 @@ class OrderCancelEventListener(
 
         logger.info("Topic: $ORDER_CANCELED, key: $key, event: $event")
 
-        OrderSagaInMemoryRepository.findByID(key)?.let {
-            boundedElasticScope.launch {
-                it.changeStateAndOperate(
-                    OrderCanceled(orderRepository, event.failureReason)
-                )
-            }
-            OrderSagaInMemoryRepository.deleteById(key)
-            acknowledgment.acknowledge()
+        boundedElasticScope.launch {
+            orderCommandService.modifyOrderStatus(event.orderId, OrderStatus.CANCELED)
         }
+
+        acknowledgment.acknowledge()
     }
 }

@@ -15,16 +15,6 @@ class KafkaConsumerConfiguration(
 ) {
 
     @Bean
-    fun orderApproveEventListenerContainerFactory(orderApproveEventListener: OrderApproveEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderApproveEventListener)
-    }
-
-    @Bean
-    fun orderCancelEventListenerContainerFactory(orderCancelEventListener: OrderCancelEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderCancelEventListener)
-    }
-
-    @Bean
     fun orderCreationEventListenerContainerFactory(orderCreationEventListener: OrderCreationEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
         return makeFactory(orderCreationEventListener)
     }

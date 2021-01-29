@@ -21,7 +21,12 @@ data class Order(
 
     @Column(name = "order_status")
     var orderStatus: OrderStatus = OrderStatus.PENDING
+    private set
 
     @Column(name = "canceled_reason")
     val canceledReason: String = ""
+
+    fun modifyStatus(status: OrderStatus) {
+        this.orderStatus = status
+    }
 }

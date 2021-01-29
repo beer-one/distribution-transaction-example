@@ -8,7 +8,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 /**
  * @see com.trx.transaction.state.OrderSagaState
  *
- * @see com.trx.transaction.state.OrderCanceled (next state)
+ * -> ORDER_CANCELED (FINISHED)
  */
 class OrderProductCheckFailed(
     val failureReason: String
