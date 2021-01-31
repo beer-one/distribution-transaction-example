@@ -8,6 +8,7 @@ SpringBoot를 사용하는 MSA 환경에서 분산 트랜잭션을 적용하는 
 
 https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 
+<br>
 ## 접근법
 
 분산 트랜잭션을 적용하는 방법으로는 크게 두 가지가 있다.
@@ -16,13 +17,13 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 * Eventual Consistency and Compensation (SAGA Pattern) :heavy_check_mark:
 
 
-
+<br>
 ### Two Phase Commit Protocol
 
 트랜잭션 처리와 데이터베이스 컴퓨터 네트워킹에서 정보가 성공적으로 수정되었음을 확인하기 위해 사용하는 ACP(Atomic Commit Protocol)이다. 트랜잭션 성공과 실패를 확인하고 이러한 작업들이 원자적으로 이루어질 수 있도록 조정하는 분산 알고리즘을 제공한다.
 
 
-
+<br>
 #### 2PC 동작 과정
 
 2PC가 동작하기 위해서는 트랜잭션 관리자인 **Coordinator** 가 필요하다. Coordinator 외의 나머지 노드들은 cohorts(또는 participants)로 불린다. 
@@ -31,6 +32,7 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 
 2PC는 **작업 요청 단계** 와 **커밋 단계** 인 2단계로 구분된다.
 
+<br>
 ##### 작업 요청 단계
 
 1. Coordinator는 모든 Cohorts에게 query to commit 메시지를 전송하고 응답이 끝나기를 기다린다.
@@ -39,6 +41,7 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 
 
 
+<br>
 ##### 커밋 단계 - 성공
 
 모든 Cohorts들로부터 작업 성공 agreement 메시지를 받았다면 성공이고, 커밋을 실행한다.
@@ -47,6 +50,7 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 2. 각 Cohorts들은 커밋 후 리소스 잠금을 해제한 후 Coordinator에게 acknowledgement를 전송한다.
 3. 모든 Cohorts로부터 ack를 받으면 작업 완료
 
+<br>
 ##### 커밋 단계 - 실패
 
 하나 이상의 Cohorts들로부터 작업 실패 agreement 메시지를 받았거나 Timeout이 발생하면 실패이고, 롤백을 수행한다.
@@ -57,6 +61,7 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 
 
 
+<br>
 #### 2PC의 단점 및 문제점
 
 Blocking Protocol이기 때문에 Coordinator가 영구적으로 실패하면 트랜잭션을 영원히 해결하지 못하는 Cohorts들이 생길 수 있다.
@@ -67,6 +72,7 @@ Blocking Protocol이기 때문에 Coordinator가 영구적으로 실패하면 �
 
 
 
+<br>
 ## SAGA
 
 SAGA는 2PC와는 다르게 트랜잭션 관리 주체가 DBMS가 아닌 애플리케이션에 있다. MSA와 같이 애플리케이션이 분산되어 있을 때, 각 애플리케이션 하위에 존재하는 DB는 로컬 트랜잭션 처리만 담당한다. 따라서 각각의 애플리케이션에 대해서 연속적인 트랜잭션 요청이 실패할 경우, 롤백 처리를 애플리케이션 단에서 구현해야 한다. 
@@ -75,6 +81,7 @@ SAGA 패턴은 Choreography-based SAGA 와 Orchestration-based SAGA로 두 종�
 
 
 
+<br>
 ### Choreography-based SAGA
 
 ![Saga_Choreography_Flow.001](/Users/yunseowon/Desktop/Saga_Choreography_Flow.001.jpeg)
@@ -97,6 +104,7 @@ Choreography-based SAGA는 각 서비스마다 자신의 로컬 트랜잭션을 
 
 
 
+<br>
 #### 장점
 
 * 별도의 Orchestrator가 없어서 Orchestration-based 보다 성능상 이점이 있다. (인스턴스를 만들지 않아도 되거나 별도의 Orchestrator 서비스가 없어도 됨.)
@@ -105,6 +113,7 @@ Choreography-based SAGA는 각 서비스마다 자신의 로컬 트랜잭션을 
 
 
 
+<br>
 #### 단점
 
 * 트랜잭션 시나리오가 하나 추가된다면 관리하기가 힘들어 질 수 있다.
@@ -113,6 +122,7 @@ Choreography-based SAGA는 각 서비스마다 자신의 로컬 트랜잭션을 
 
 
 
+<br>
 ### Orchestration based SAGA
 
 Orchestration based SAGA에서는 하나의 책임을 가지는 여러 개의 서비스와 그 서비스들 간의 트랜잭션 처리를 담당하는 Orchestrator가 존재한다. Choreography-based SAGA 처럼 각 서비스가 서로 다른 서비스의 이벤트를 청취해야 하는 것 과는 다르게 Orchestrator가 모든 서비스의 이벤트를 청취하고 엔드포인트를 트리거할 책임을 가지고 있다. 
@@ -129,6 +139,7 @@ Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스�
 
 
 
+<br>
 #### 장점
 
 * 트랜잭션 시라니오에 변화가 생겨도 Orchestrator만 변경하면 되기 때문에 유지보수에 용이하다.
@@ -136,6 +147,7 @@ Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스�
 
 
 
+<br>
 #### 단점
 
 * 아무래도 구현하기가 힘들다.
@@ -144,6 +156,7 @@ Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스�
 
 
 
+<br>
 ## Note
 
 > 보통, SAGA 패턴은 성능과 신뢰성, 확장성을 높이기 위해 Kafka나 RabbitMQ와 같은 message broker를 사용한다.
@@ -151,11 +164,13 @@ Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스�
 
 
 
+<br>
 
 ## 현 프로젝트
 
 [State Pattern](https://github.com/YunSeoWon/TIL-1YEAR/tree/main/design-patterns/state-machine)을 이용해서 Orchestration based SAGA를 구현해볼 예정이다.
 
+<br>
 ### 프로젝트 구조
 
 SAGA 실습 프로젝트 구조는 아래 그림과 같다.
@@ -163,18 +178,19 @@ SAGA 실습 프로젝트 구조는 아래 그림과 같다.
 애플리케이션 서비스는 주문 관련 도메인 기능을 담당하는 OrderService, 상품 관련 도메인 기능을 담당하는 ProductService, 계좌 관련 도메인 기능을 담당하는 AccountService가 있고 이 각각은 각자의 독립된 데이터베이스를 사용한다. 그리고 주문 관련 도메인 분산 트랜잭션 처리를 담당하는 OrderOrchestrator가 있다. (AccountOrchestrator, ProductOchestrator는 일단 생략한다.) 
 
 
-
-![스크린샷 2021-01-27 오후 11 46 47](https://user-images.githubusercontent.com/35602698/106020964-a4a6eb00-6107-11eb-8d19-48fb321c6171.png)
-
+![스크린샷 2021-01-27 오후 11 57 23](https://user-images.githubusercontent.com/35602698/106384714-9e6a8480-640f-11eb-8927-1d4f517705f8.png)
 
 
 
 
+
+<br>
 ### FSM
 
 먼저 실습을 시작하기 앞서, 주문 로직을 Final State Machine을 표현해보았다.
 
-![FSM](/Users/yunseowon/Desktop/FSM.png)
+![FSM](https://user-images.githubusercontent.com/35602698/106384732-b04c2780-640f-11eb-9dc4-7575445569d4.png)
+
 
 1. 먼저 주문 생성 요청이 들어오면 주문을 Pending 상태로 만들어놓는다. [OrderPending]
 
@@ -192,6 +208,7 @@ SAGA 실습 프로젝트 구조는 아래 그림과 같다.
 
 
 
+<br>
 ### SAGA
 
 SAGA는 하나의 비즈니스 트랜잭션의 흐름을 관리하는 객체로 트랜잭션에 관한 상태를 가지고 있으며, 해당 상태에서 다음 상태로 가기 위한 적절한 액션을 취하는 객체이다. 
@@ -249,6 +266,7 @@ class OrderSaga private constructor (
 
 
 
+<br>
 ### SagaState
 
 SagaState는 Saga의 상태를 나타내며, 이 객체에 해당 상태에 맞는 액션을 정의하는 인터페이스다.
@@ -326,11 +344,13 @@ class OrderPaymentFinished: OrderSagaState {
 
 
 
+<br>
 ### SAGA 객체 생성, 트랜잭션 흘러가는 과정
 
 먼저 주문의 정상적인 시나리오를 도식화하면 다음과 같다.
 
-![스크린샷 2021-01-31 오전 12.43.46](/Users/yunseowon/Desktop/스크린샷 2021-01-31 오전 12.43.46.png)
+![스크린샷 2021-01-31 오후 10 02 00](https://user-images.githubusercontent.com/35602698/106384796-0ae58380-6410-11eb-9ab6-df23312742f9.png)
+
 
 
 
@@ -456,6 +476,7 @@ class ProductEventListener(
 
 
 
+<br>
 #### 성공 시나리오
 
 상품 재고 확인에 성공하면 CHECK_PRODUCT_COMPLETED 이벤트를 발행하고, 이 이벤트는 OrderOrchestrator가 수신한다.  (Orchestration based SAGA는 Orchestrator -> Service -> Orchestrator 이런식으로 티키타카한다.) 
@@ -654,9 +675,11 @@ class OrderCompletedEventListener(
 * OrderService에서 ORDER_COMPLETED 이벤트를 발행하여 주문을 승인 상태로 만들어놓는다.
 * 주문 생성 트랜잭션을 요청하는 주체가 OrderService지만, Orchestrator에서 비즈니스 로직을 심으면 안되기 때문에 주문 승인 / 취소 처리를 하는 로직을 OrderService로 두었다. 
 
-
+<br>
 
 #### 실패 시나리오
+
+![스크린샷 2021-01-31 오후 10 02 57](https://user-images.githubusercontent.com/35602698/106384810-205aad80-6410-11eb-97c2-880b699ccb96.png)
 
 만약 결제를 실패했을 경우에는 **(1)주문 수량만큼 뺐던 상품 수량을 다시 되돌리고**, **(2)주문을 취소 상태로** 만들어야 한다.
 
@@ -798,6 +821,7 @@ class OrderRollBackedEventListener(
 
 
 
+<br>
 ## 결과
 
 Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실제로 API를 만들어 요청 한 다음 잘 되는지 보고 결과를 분석해보았다.
@@ -841,9 +865,7 @@ Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실
 
 2000원짜리 5개 주문을 15번 요청해보았다. 잔액이 54000원 있기 때문에 5번은 성공할 것이고 10번은 실패할 것이다.
 
-![스크린샷 2021-01-31 오후 9.03.51](/Users/yunseowon/Desktop/request.png)
-
-
+<br>
 
 그리고 주문 결과를 확인해보았다
 
@@ -978,6 +1000,7 @@ Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실
 
 
 
+<br>
 ## ACD(?)
 
 분산 트랜잭션에서 2PC와는 다르게 Saga는 DBMS에서 지원하는 트랜잭션을 사용할 수 없기 때문에 Isolation을 지원하지 않는다.
@@ -989,9 +1012,7 @@ Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실
 
 
 
-
-
-
+<br>
 ## Saga 패턴의 한계(?) 또는 이슈
 
 * 디버깅이 힘들다. (여러 마이크로 서비스를 뜯어봐야 한다.)
