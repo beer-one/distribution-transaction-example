@@ -2,10 +2,10 @@ package com.trx.presentation.listener.order
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.coroutine.boundedElasticScope
-import com.trx.topic.Topic.CHECK_PRODUCT_SUCCEED
-import com.trx.topic.event.CheckProductSucceed
-import com.trx.transaction.OrderSagaInMemoryRepository
-import com.trx.transaction.state.OrderProductChecked
+import com.trx.topic.Topic.PAYMENT_COMPLETED
+import com.trx.topic.event.*
+import com.trx.transaction.SagaRepository
+import com.trx.transaction.state.OrderPaymentCompleted
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -15,26 +15,28 @@ import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 
 /**
- * 상품 확인 완료 => 결제 요청
+ * 결제 완료 => 승인 상태로
  */
 @Component
-class OrderProductCheckSucceedEventListener(
-    private val objectMapper: ObjectMapper
+class OrderPaymentCompletedEventListener(
+    private val objectMapper: ObjectMapper,
+    private val sagaRepository: SagaRepository
 ) : AcknowledgingMessageListener<String, String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = [CHECK_PRODUCT_SUCCEED], groupId = "order-orchestrator", containerFactory = "orderProductCheckSucceedEventListenerContainerFactory")
+    @KafkaListener(topics = [PAYMENT_COMPLETED], groupId = "order-orchestrator", containerFactory = "orderPaymentCompletedEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
-        val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductSucceed::class.java)
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), PaymentCompleted::class.java)
 
-        logger.info("Topic: $CHECK_PRODUCT_SUCCEED, key: $key, event: $event")
+        logger.info("Topic: $PAYMENT_COMPLETED, key: $key, event: $event")
 
-        OrderSagaInMemoryRepository.findByID(key)?.let {
+        sagaRepository.findById(key)?.let {
             boundedElasticScope.launch {
                 it.changeStateAndOperate(
-                    OrderProductChecked(event.totalPrice)
+                    OrderPaymentCompleted()
                 )
+                sagaRepository.deleteById(key)
             }
             acknowledgment.acknowledge()
         }

@@ -2,10 +2,10 @@ package com.trx.presentation.listener.order
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.coroutine.boundedElasticScope
-import com.trx.topic.Topic.PAYMENT_FAILED
-import com.trx.topic.event.*
+import com.trx.topic.Topic.ORDER_ROLLBACKED
+import com.trx.topic.event.CheckProductFailed
 import com.trx.transaction.SagaRepository
-import com.trx.transaction.state.OrderPaymentFailed
+import com.trx.transaction.state.OrderRollBacked
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
@@ -18,25 +18,25 @@ import org.springframework.stereotype.Component
  * 상품 확인 완료 => 결제 요청
  */
 @Component
-class OrderPaymentFailedEventListener(
+class OrderRollBackedEventListener(
     private val objectMapper: ObjectMapper,
     private val sagaRepository: SagaRepository
 ) : AcknowledgingMessageListener<String, String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = [PAYMENT_FAILED], groupId = "order-orchestrator", containerFactory = "orderPaymentFailedEventListenerContainerFactory")
+    @KafkaListener(topics = [ORDER_ROLLBACKED], groupId = "order-orchestrator", containerFactory = "orderProductCheckFailedEventListenerContainerFactory")
     override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
-        val (key, event) = data.key() to objectMapper.readValue(data.value(), PaymentFailed::class.java)
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductFailed::class.java)
 
-        logger.info("Topic: $PAYMENT_FAILED, key: $key, event: $event")
-        logger.info("Failure reason: ${event.failureReason}")
+        logger.info("Topic: $ORDER_ROLLBACKED, key: $key, event: $event")
 
         sagaRepository.findById(key)?.let {
             boundedElasticScope.launch {
                 it.changeStateAndOperate(
-                    OrderPaymentFailed(event.failureReason)
+                    OrderRollBacked(event.failureReason)
                 )
+                sagaRepository.deleteById(key)
             }
             acknowledgment.acknowledge()
         }

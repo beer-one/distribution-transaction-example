@@ -1,14 +1,14 @@
 package com.trx.transaction.state
 
 import com.trx.topic.Topic
-import com.trx.topic.event.OrderCancelEvent
+import com.trx.topic.event.OrderFailed
 import com.trx.transaction.saga.OrderSaga
 import kotlinx.coroutines.reactive.awaitSingle
 
 /**
  * @see com.trx.transaction.state.OrderSagaState
  *
- * -> ORDER_CANCELED (FINISHED)
+ * -> ORDER_FAILED (FINISHED)
  */
 class OrderProductCheckFailed(
     val failureReason: String
@@ -16,9 +16,9 @@ class OrderProductCheckFailed(
 
     override suspend fun operate(saga: OrderSaga) {
         saga.publishEvent(
-            Topic.ORDER_CANCELED,
+            Topic.ORDER_FAILED,
             saga.key,
-            OrderCancelEvent(saga.orderId, failureReason)
+            OrderFailed(saga.orderId, failureReason)
         ).awaitSingle()
     }
 }

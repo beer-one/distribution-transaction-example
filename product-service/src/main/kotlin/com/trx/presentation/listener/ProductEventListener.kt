@@ -7,10 +7,10 @@ import com.trx.coroutine.boundedElasticScope
 import com.trx.errors.CustomException
 import com.trx.topic.Topic.CHECK_PRODUCT
 import com.trx.topic.Topic.CHECK_PRODUCT_FAILED
-import com.trx.topic.Topic.CHECK_PRODUCT_SUCCEED
+import com.trx.topic.Topic.CHECK_PRODUCT_COMPLETED
 import com.trx.topic.event.CheckProductEvent
 import com.trx.topic.event.CheckProductFailed
-import com.trx.topic.event.CheckProductSucceed
+import com.trx.topic.event.CheckProductCompleted
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -38,9 +38,9 @@ class ProductEventListener(
         try {
             val price = productCommandService.checkAndSubtractProduct(event)
             transactionEventPublisher.publishEvent(
-                topic = CHECK_PRODUCT_SUCCEED,
+                topic = CHECK_PRODUCT_COMPLETED,
                 key = key,
-                event = CheckProductSucceed(price)
+                event = CheckProductCompleted(price)
             )
         } catch (e: CustomException) {
             logger.error("[Error]: ", e)

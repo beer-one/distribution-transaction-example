@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.trx.coroutine.boundedElasticScope
 import com.trx.topic.Topic.CHECK_PRODUCT_FAILED
 import com.trx.topic.event.CheckProductFailed
-import com.trx.transaction.OrderSagaInMemoryRepository
+import com.trx.transaction.SagaRepository
 import com.trx.transaction.state.OrderProductCheckFailed
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -19,7 +19,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class OrderProductCheckFailedEventListener(
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val sagaRepository: SagaRepository
 ) : AcknowledgingMessageListener<String, String> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -31,7 +32,7 @@ class OrderProductCheckFailedEventListener(
         logger.info("Topic: $CHECK_PRODUCT_FAILED, key: $key, event: $event")
         logger.info("Failure reason: ${event.failureReason}")
 
-        OrderSagaInMemoryRepository.findByID(key)?.let {
+        sagaRepository.findById(key)?.let {
             boundedElasticScope.launch {
                 it.changeStateAndOperate(
                     OrderProductCheckFailed(event.failureReason)

@@ -5,7 +5,7 @@ import com.trx.application.event.TransactionEventPublisher
 import com.trx.coroutine.boundedElasticScope
 import com.trx.topic.Topic.ORDER_CREATED
 import com.trx.topic.event.OrderCreateEvent
-import com.trx.transaction.OrderSagaInMemoryRepository
+import com.trx.transaction.SagaRepository
 import com.trx.transaction.saga.OrderSaga
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component
 @Component
 class OrderCreationEventListener(
     private val eventPublisher: TransactionEventPublisher,
+    private val sagaRepository: SagaRepository,
     private val objectMapper: ObjectMapper
 ) : AcknowledgingMessageListener<String, String> {
 
@@ -35,7 +36,7 @@ class OrderCreationEventListener(
 
         val orderSaga = OrderSaga.init(eventPublisher, key, event)
 
-        OrderSagaInMemoryRepository.save(key, orderSaga)
+        sagaRepository.save(key, orderSaga)
         boundedElasticScope.launch {
             orderSaga.operate()
         }

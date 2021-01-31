@@ -1,7 +1,7 @@
 package com.trx.infrastructure.configuration
 
-import com.trx.presentation.listener.OrderApproveEventListener
-import com.trx.presentation.listener.OrderCancelEventListener
+import com.trx.presentation.listener.OrderCompletedEventListener
+import com.trx.presentation.listener.OrderFailedEventListener
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,16 +17,16 @@ class KafkaConsumerConfiguration(
 
     @Bean
     fun orderApproveEventListenerContainerFactory(
-        orderApproveEventListener: OrderApproveEventListener
+        orderCompletedEventListener: OrderCompletedEventListener
     ): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderApproveEventListener)
+        return makeFactory(orderCompletedEventListener)
     }
 
     @Bean
     fun orderCancelEventListenerContainerFactory(
-        orderCancelEventListener: OrderCancelEventListener
+        orderFailedEventListener: OrderFailedEventListener
     ): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderCancelEventListener)
+        return makeFactory(orderFailedEventListener)
     }
 
     private fun makeFactory(listener: AcknowledgingMessageListener<String, String>): ConcurrentKafkaListenerContainerFactory<String, String> {

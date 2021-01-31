@@ -1,18 +1,20 @@
 package com.trx.transaction
 
 import com.trx.transaction.saga.OrderSaga
+import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
-object OrderSagaInMemoryRepository {
+@Component
+class SagaInMemoryRepository: SagaRepository {
     private val orderSagaMap: ConcurrentHashMap<String, OrderSaga> = ConcurrentHashMap()
 
-    fun save(key: String, orderSaga: OrderSaga) {
-        orderSagaMap[key] = orderSaga
+    override fun save(id: String, orderSaga: OrderSaga) {
+        orderSagaMap[id] = orderSaga
     }
 
-    fun findByID(key: String): OrderSaga? = orderSagaMap[key]
+    override fun findById(id: String): OrderSaga? = orderSagaMap[id]
 
-    fun deleteById(key: String) {
-        orderSagaMap.remove(key)
+    override fun deleteById(id: String) {
+        orderSagaMap.remove(id)
     }
 }

@@ -8,7 +8,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 /**
  * @see com.trx.transaction.state.OrderSagaState
  *
- * @see com.trx.transaction.state.OrderPaymentFinished if payment success
+ * @see com.trx.transaction.state.OrderPaymentCompleted if payment success
  * @see com.trx.transaction.state.OrderPaymentFailed if payment failed
  */
 class OrderProductChecked (

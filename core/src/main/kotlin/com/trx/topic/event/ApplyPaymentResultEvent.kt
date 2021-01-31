@@ -1,6 +1,6 @@
 package com.trx.topic.event
 
-data class PaymentSucceed(
+data class PaymentCompleted(
     val restBalance: Int
 )
 

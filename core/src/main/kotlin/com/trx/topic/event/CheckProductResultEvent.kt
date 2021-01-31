@@ -1,6 +1,6 @@
 package com.trx.topic.event
 
-data class CheckProductSucceed(
+data class CheckProductCompleted(
     val totalPrice: Int
 )
 

@@ -6,19 +6,17 @@ import com.trx.transaction.saga.OrderSaga
 import kotlinx.coroutines.reactive.awaitSingle
 
 /**
- * @see com.trx.transaction.state.OrderSagaState
- *
  * -> ORDER_FAILED (FINISHED)
  */
-class OrderPaymentFailed(
+class OrderRollBacked(
     val failureReason: String
 ): OrderSagaState {
 
     override suspend fun operate(saga: OrderSaga) {
         saga.publishEvent(
-            Topic.PRODUCT_ROLLBACK,
+            Topic.ORDER_FAILED,
             saga.key,
-            ProductRollBackEvent(saga.productId, saga.count, failureReason)
+            OrderFailed(saga.orderId, failureReason)
         ).awaitSingle()
     }
 }

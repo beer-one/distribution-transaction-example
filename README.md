@@ -113,9 +113,9 @@ Choreography-based SAGA는 각 서비스마다 자신의 로컬 트랜잭션을 
 
 
 
-### Command / Orchestration based SAGA
+### Orchestration based SAGA
 
-Command / Orchestration based SAGA에서는 하나의 책임을 가지는 여러 개의 서비스와 그 서비스들 간의 트랜잭션 처리를 담당하는 Orchestrator가 존재한다. Choreography-based SAGA 처럼 각 서비스가 서로 다른 서비스의 이벤트를 청취해야 하는 것 과는 다르게 Orchestrator가 모든 서비스의 이벤트를 청취하고 엔드포인트를 트리거할 책임을 가지고 있다. 
+Orchestration based SAGA에서는 하나의 책임을 가지는 여러 개의 서비스와 그 서비스들 간의 트랜잭션 처리를 담당하는 Orchestrator가 존재한다. Choreography-based SAGA 처럼 각 서비스가 서로 다른 서비스의 이벤트를 청취해야 하는 것 과는 다르게 Orchestrator가 모든 서비스의 이벤트를 청취하고 엔드포인트를 트리거할 책임을 가지고 있다. 
 
 ![Image for post](https://miro.medium.com/max/683/1*OxfdbfsX2M7qrv5WsSXAMg.png)
 
@@ -140,6 +140,7 @@ Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스�
 
 * 아무래도 구현하기가 힘들다.
 * Orchestrator에게 트랜잭션 관련된 로직들이 엄청 많이 쌓이는데 비즈니스 로직이 추가된다면 유지보수에 엄청 힘들어 질 것이다. 그래서 Orchestration-based SAGA를 구현한다면 Orchestrator에는 트랜잭션 순서?에 관한 로직 (only Command / Reply) 만 작성할 수 있도록 관리해야 한다.
+* Orchestrator가 추가되기 때문에 인프라 복잡성이 증가한다.
 
 
 
@@ -155,34 +156,6 @@ Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스�
 
 [State Pattern](https://github.com/YunSeoWon/TIL-1YEAR/tree/main/design-patterns/state-machine)을 이용해서 Orchestration based SAGA를 구현해볼 예정이다.
 
-
-
-### FSM
-
-먼저 실습을 시작하기 앞서, 주문 로직을 Final State Machine을 표현해보았다.
-
-![FSM](https://user-images.githubusercontent.com/35602698/104201797-77064480-546d-11eb-9fcc-014bbd4a38ed.png)
-
-1. 먼저 주문 생성 요청이 들어오면 주문을 Pending 상태로 만들어놓는다. [OrderPending]
-
-2. 주문 내역에 포함된 상품의 재고가 있는지 확인한 다음,
-
-   2-1 재고가 있다면 상품 재고를 요청 상품 개수만큼 뺀다. [OrderProductChecked]
-
-   2-2 재고가 없다면 상품 재고가 없다는 에러와 함께 주문을 Canceled 상태로 만든다. [OrderProductOutOfStocked]->[OrderCanceled]
-
-3. 상품 재고가 있다면 결제를 진행한다.
-
-   3-1 잔고가 상품 총 가격보다 많다면 잔고를 상품 총 가격만큼 뺀 후 주문을 Approved 상태로 만든다. [OrderPaymentFinished]
-
-   3-2 잔고가 부족하다면 상품 재고를 롤백시키고 주문을 Canceled 상태로 만들어놓는다. [OrderPaymentFailed]->[OrderProductReturned]->[OrderCanceled]
-
-
-
-
-
-
-
 ### 프로젝트 구조
 
 SAGA 실습 프로젝트 구조는 아래 그림과 같다.
@@ -197,18 +170,644 @@ SAGA 실습 프로젝트 구조는 아래 그림과 같다.
 
 
 
+### FSM
+
+먼저 실습을 시작하기 앞서, 주문 로직을 Final State Machine을 표현해보았다.
+
+![FSM](/Users/yunseowon/Desktop/FSM.png)
+
+1. 먼저 주문 생성 요청이 들어오면 주문을 Pending 상태로 만들어놓는다. [OrderPending]
+
+2. 주문 내역에 포함된 상품의 재고가 있는지 확인한 다음,
+
+   2-1 재고가 있다면 상품 재고를 요청 상품 개수만큼 뺀다. [OrderProductChecked]
+
+   2-2 재고가 없다면 상품 재고가 없다는 에러와 함께 주문을 Canceled 상태로 만든다. [OrderProductCheckFailed]->[OrderFailed]
+
+3. 상품 재고가 있다면 결제를 진행한다.
+
+   3-1 잔고가 상품 총 가격보다 많다면 잔고를 상품 총 가격만큼 뺀 후 주문을 Approved 상태로 만든다. [OrderPaymentCompleted]->[OrderCompleted]
+
+   3-2 잔고가 부족하다면 상품 재고를 롤백시키고 주문을 Canceled 상태로 만들어놓는다. [OrderPaymentFailed]->[OrderRollBacked]->[OrderFailed]
+
+
+
+### SAGA
+
+SAGA는 하나의 비즈니스 트랜잭션의 흐름을 관리하는 객체로 트랜잭션에 관한 상태를 가지고 있으며, 해당 상태에서 다음 상태로 가기 위한 적절한 액션을 취하는 객체이다. 
+
+FSM 그림을 참고하면, OrderSaga라는 Saga 객체가 있으며, 이 객체는 OrderPending, OrderProductChecked 와 같은 상태를 가지고 `OrderProductChecked` 상태를 가질 때 이 객체는 결제를 진행하기 위해 `ApplyPayment` 이벤트를 날린다.(액션)
+
+Saga 객체를 코드로 작성하면 다음과 같다.
+
+```kotlin
+class OrderSaga private constructor (
+    private val eventPublisher: TransactionEventPublisher,
+    private var state: OrderSagaState,
+    val orderId: Int,
+    val customerId: Int,
+    val productId: Int,
+    val count: Int,
+    val key: String
+) {
+
+    companion object {
+        fun init(
+            eventPublisher: TransactionEventPublisher,
+            key: String,
+            event: OrderCreateEvent
+        ): OrderSaga = OrderSaga(
+            eventPublisher = eventPublisher,
+            state = OrderPending(),
+            orderId = event.orderId,
+            customerId = event.customerId,
+            productId = event.productId,
+            count = event.count,
+            key = key
+        )
+    }
+
+    suspend fun changeStateAndOperate(state: OrderSagaState) {
+        this.state = state
+        this.operate()
+    }
+
+    suspend fun operate() {
+        state.operate(this)
+    }
+
+    fun publishEvent(topic: String, key: String, event: Any): Mono<SenderResult<Void>> {
+        return eventPublisher.publishEvent(topic, key, event)
+    }
+}
+```
+
+* private constructor로 생성자로 객체를 생성하는 것을 막고, init()이라는 팩토리 메서드를 만들어서 객체를 생성할 땐 `무조건` OrderPending 상태로 만들어놓게끔 설계했다.
+* Saga 객체는 상태를 가지며, 그 상태를 표현하는 객체는 OrderSagaState이다.
+* operate() 메서드를 호출함으로써 Saga의 상태에 맞는 적절한 액션을 취하게 되는데, 이는 상태, 즉 OrderSagaState에게 기능을 위임한다. 
+* OrderSaga 공통적으로 해당 상태에서 다음 상태로 가기 위해 다른 서비스로 이벤트를 날린다. 그래서 Saga 객체에 eventPublisher가 있다. TransactionEventPublisher는 이벤트 발행을 하는 인터페이스로, Kafka, RabbitMQ 등으로 구현할 수 있다.
+
+
+
+### SagaState
+
+SagaState는 Saga의 상태를 나타내며, 이 객체에 해당 상태에 맞는 액션을 정의하는 인터페이스다.
+
+일단 나는 일반적인 SagaState와 보상 트랜잭션을 구현해야 하는 CompensatingSagaState 인터페이스를 정의하였다.
+
+```kotlin
+interface OrderSagaState {
+    suspend fun operate(saga: OrderSaga)
+}
+
+interface CompensatingSagaState {
+    suspend fun doCompensatingTransaction(saga: OrderSaga)
+}
+```
+
+* operate() 메서드에 해당 상태에 따른 액션을 구현하면 된다.
+* doCompensatingTransaction() 메서드에서는 보상 트랜잭션 기능을 구현한다. 이 또한 이벤트를 발행하여 구현할 것이다.
+
+
+
+그리고 FSM에서 설계한 모든 SagaState를 구현체로 만들면 된다.
+
+```kotlin
+class OrderPending : OrderSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.CHECK_PRODUCT,
+            saga.key,
+            CheckProductEvent(saga.productId, saga.count)
+        ).awaitSingle()
+    }
+}
+
+class OrderProductChecked (
+    private val totalPrice: Int
+) : OrderSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.APPLY_PAYMENT,
+            saga.key,
+            ApplyPaymentEvent(saga.customerId, totalPrice)
+        ).awaitSingle()
+    }
+}
+
+...
+
+class OrderPaymentFailed(
+    val failureReason: String
+): OrderSagaState, CompensatingSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        doCompensatingTransaction(saga)
+
+        saga.publishEvent(
+            Topic.ORDER_FAILED,
+            saga.key,
+            OrderFailed(saga.orderId, failureReason)
+        ).awaitSingle()
+    }
+
+    override suspend fun doCompensatingTransaction(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.CHECK_PRODUCT_ROLLBACK,
+            saga.key,
+            ProductRollBackEvent(saga.productId, saga.count)
+        ).awaitSingle()
+    }
+}
+
+class OrderPaymentFinished: OrderSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.ORDER_COMPLETED,
+            saga.key,
+            OrderCompleted(saga.orderId)
+        ).awaitSingle()
+    }
+}
+```
+
+* 각 SagaState에서는 해당 상태에서 다음 상태로 가기 위해 이벤트를 발행한다.
+* 그런데 만들다보니까 Final State인 OrderApproved, OrderCanceled가 없다.
+  * FinalState는 (ORDER_APPROVED, ORDER_CANCELED)만 날려줘도 괜찮기 때문(이라고 생각)
 
 
 
 
 
+### SAGA 객체 생성, 트랜잭션 흘러가는 과정
+
+먼저 주문의 정상적인 시나리오를 도식화하면 다음과 같다.
+
+![스크린샷 2021-01-31 오전 12.43.46](/Users/yunseowon/Desktop/스크린샷 2021-01-31 오전 12.43.46.png)
+
+
+
+주문 생성 트랜잭션은 성공 기준으로 크게 4가지 스텝이 있다.
+
+1. 주문 Pending 상태로 저장
+2. 재고 확인
+3. 결제 진행
+4. 주문 Approve 상태로 저장
+
+
+
+먼저 클라이언트가 주문 생성 요청을 하면 OrderService에서 주문을 `Pending` 상태로 만들어놓고 저장한다. 그 후 OrderOrchestrator가 주문 생성 트랜잭션 작업을 수행하도록 하기 위해 ORDER_CREATED 이벤트를 발행한다.
+
+OrderOrchestrator가 ORDER_CREATED 이벤트를 수신하면 OrderSaga 객체를 생성하여 주문 생성 트랜잭션을 관리한다.
+
+**[OrderOrchestrator] OrderCreationEventListener.kt**
+
+```kotlin
+@Component
+class OrderCreationEventListener(
+    private val eventPublisher: TransactionEventPublisher,
+    private val sagaRepository: SagaRepository,
+    private val objectMapper: ObjectMapper
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [ORDER_CREATED], groupId = "order-orchestrator", containerFactory = "orderCreationEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), OrderCreateEvent::class.java)
+
+        logger.info("Topic: $ORDER_CREATED, key: $key, event: $event")
+
+        val orderSaga = OrderSaga.init(eventPublisher, key, event)
+
+        sagaRepository.save(key, orderSaga)
+        boundedElasticScope.launch {
+            orderSaga.operate()
+        }
+        acknowledgment.acknowledge()
+    }
+}
+
+```
+
+* OrderCreateEvent 객체에는 주문 생성 트랜잭션에 필요한 데이터가 들어있어야 한다.
+* 여기서는 init() 팩토리 메서드로  OrderPending 상태인 OrderSaga를 생성하여 OrderSagaRepository에 저장한 후 OrderSaga의 액션을 실행한다.
+* OrderSaga를 만들 때 key가 필요한데 key는 Saga 인스턴스를 식별할 수 있는 유일한 값으로 저장되어야 한다. 코드에는 나와있지 않지만 UUID를 사용하였다.
+
+
+
+**[OrderOrchestrator] OrderPending.kt**
+
+```kotlin
+class OrderPending : OrderSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.CHECK_PRODUCT,
+            saga.key,
+            CheckProductEvent(saga.productId, saga.count)
+        ).awaitSingle()
+    }
+}
+```
+
+* OrderPending 상태에서는 CHECK_PRODUCT 이벤트를 발행한다. CHECK_PRODUCT 이벤트 수신 측은 주문 요청한 상품의 재고가 남아있는지 확인하고 남아있다면 재고를 뺀다.
+* Saga 트랜잭션에 관련된 이벤트를 발행할 때는 saga 인스턴스가 가지고있는 고유 키를 넘겨줘야 한다. 트랜잭션 흐름을 유지하기 위해서이다.
+
+
+
+CHECK_PRODUCT 이벤트가 발행이 되면 ProductService에서 해당 이벤트를 수신하여 주문 요청한 상품의 재고가 남아있는지 확인하고 남아있다면 재고를 뺀다.
+
+**[ProductService] ProductEventListener.kt**
+
+```kotlin
+@Component
+class ProductEventListener(
+    private val objectMapper: ObjectMapper,
+    private val productCommandService: ProductCommandService,
+    private val transactionEventPublisher: TransactionEventPublisher
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [CHECK_PRODUCT], groupId = "product-consumer", containerFactory = "productEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductEvent::class.java)
+
+        logger.info("Topic: $CHECK_PRODUCT, key: $key, event: $event")
+
+        try {
+            val price = productCommandService.checkAndSubtractProduct(event)
+            transactionEventPublisher.publishEvent(
+                topic = CHECK_PRODUCT_COMPLETED,
+                key = key,
+                event = CheckProductCompleted(price)
+            )
+        } catch (e: CustomException) {
+            logger.error("[Error]: ", e)
+
+            transactionEventPublisher.publishEvent(
+                topic = CHECK_PRODUCT_FAILED,
+                key = key,
+                event = CheckProductFailed(e.message!!)
+            )
+        }.let {
+            boundedElasticScope.launch {
+                it.awaitFirstOrNull()
+            }
+        }
+
+        acknowledgment.acknowledge()
+    }
+}
+```
+
+* 상품의 재고를 확인한 후 재고가 남아있다면 재고를 주문 수량만큼 뺀 후, CHECK_PRODUCT_COMPLETED 이벤트를 발행한다. 결제 절차를 진행하기 위해 이벤트 메시지에 상품의 총 가격을 담는다.
+* 상품 수량 확인을 하지 못했다면 CHECK_PRODUCT_FAILED 이벤트를 발행한다. 이 이벤트 메시지에는 상품 확인 실패 사유를 담는다. (여기서는 재고 부족)
 
 
 
 
 
+#### 성공 시나리오
+
+상품 재고 확인에 성공하면 CHECK_PRODUCT_COMPLETED 이벤트를 발행하고, 이 이벤트는 OrderOrchestrator가 수신한다.  (Orchestration based SAGA는 Orchestrator -> Service -> Orchestrator 이런식으로 티키타카한다.) 
+
+재고 확인에 성공하면 Orchestrator는 다음 스텝인 결제 진행을 요청 할 것이다. CHECK_PRODUCT_COMPLETED 이벤트 리스너 코드를 보자.
+
+**[OrderOrchestrator] OrderProductCheckCompletedEventListener.kt**
+
+```kotlin
+@Component
+class OrderProductCheckCompletedEventListener(
+    private val objectMapper: ObjectMapper,
+    private val sagaRepository: SagaRepository
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [CHECK_PRODUCT_COMPLETED], groupId = "order-orchestrator", containerFactory = "orderProductCheckCompletedEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductCompleted::class.java)
+
+        logger.info("Topic: $CHECK_PRODUCT_COMPLETED, key: $key, event: $event")
+
+        sagaRepository.findById(key)?.let {
+            boundedElasticScope.launch {
+                it.changeStateAndOperate(
+                    OrderProductChecked(event.totalPrice)
+                )
+            }
+            acknowledgment.acknowledge()
+        }
+    }
+}
+```
+
+* Service가 비즈니스 로직을 마친 후 발행한 이벤트기 때문에 SagaState가 변경되어야 한다. 이벤트가 발행할 때 key값도 같이 넘겨주기 때문에 key 값을 이용하여 Saga 인스턴스를 꺼낸다.
+* Saga 인스턴스를 꺼낸 후 해당 Saga를 OrderProductChecked 상태로 변경하고 즉시 액션을 실행한다.
 
 
 
+**[OrderOrchestrator] OrderProductChecked.kt**
+
+```kotlin
+class OrderProductChecked (
+    private val totalPrice: Int
+) : OrderSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.APPLY_PAYMENT,
+            saga.key,
+            ApplyPaymentEvent(saga.customerId, totalPrice)
+        ).awaitSingle()
+    }
+}
+```
+
+* OrderProductChecked 상태에서는 결제를 진행하기 위해 APPLY_PAYMENT 이벤트를 발행한다. 해당 이벤트는 AccountService가 수신한다.
+
+
+
+**[AccountService] AccountEventListener.kt**
+
+```kotlin
+@Component
+class AccountEventListener(
+    private val objectMapper: ObjectMapper,
+    private val accountCommandService: AccountCommandService,
+    private val transactionEventPublisher: TransactionEventPublisher
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [APPLY_PAYMENT], groupId = "account-consumer", containerFactory = "accountEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = (data.key() to objectMapper.readValue(data.value(), ApplyPaymentEvent::class.java))
+
+        logger.info("Topic: $APPLY_PAYMENT, key: $key, event: $event")
+
+        try {
+            val restBalance = accountCommandService.applyPayment(event)
+            transactionEventPublisher.publishEvent(
+                topic = PAYMENT_COMPLETED,
+                key = key,
+                event = PaymentCompleted(restBalance)
+            )
+        } catch (e: CustomException) {
+            logger.error("[Error]: ", e)
+
+            transactionEventPublisher.publishEvent(
+                topic = PAYMENT_FAILED,
+                key = key,
+                event = PaymentFailed(e.message!!)
+            )
+        }.let {
+            boundedElasticScope.launch {
+                it.awaitFirstOrNull()
+            }
+        }
+
+        acknowledgment.acknowledge()
+    }
+}
+```
+
+* 여기서는 주문 요청한 회원의 계좌 잔고를 확인하여 잔고가 남아있을 경우 결제를 진행한 다음 주문 승인 상태로 만들기 위해 PAYMENT_COMPLETED 이벤트를 발행한다.
+* 잔고가 부족하다면 주문 취소 상태로 만들기 위해 PAYMENT_FAILED 이벤트를 발행한다.
+
+
+
+결제 진행이 완료되어 PAYMENT_COMPLETED 이벤트가 발행이 되면 Orchestrator는 다음 스텝인 주문 승인 처리를 할 것이다.
+
+key를 이용해 Saga 인스턴스를 조회한 다음 OrderPaymentFinished 상태로 변경한다.
+
+**[OrderOrchestrator] OrderPaymentCompletedEventListener.kt**
+
+```kotlin
+@Component
+class OrderPaymentCompletedEventListener(
+    private val objectMapper: ObjectMapper,
+    private val sagaRepository: SagaRepository
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [PAYMENT_COMPLETED], groupId = "order-orchestrator", containerFactory = "orderPaymentCompletedEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), PaymentCompleted::class.java)
+
+        logger.info("Topic: $PAYMENT_COMPLETED, key: $key, event: $event")
+
+        sagaRepository.findById(key)?.let {
+            boundedElasticScope.launch {
+                it.changeStateAndOperate(
+                    OrderPaymentCompleted()
+                )
+                sagaRepository.deleteById(key)
+            }
+            acknowledgment.acknowledge()
+        }
+    }
+}
+
+```
+
+* Saga 인스턴스가 OrderPaymentFinished 상태가 되면 주문을 승인 상태로 만든다.
+* 주문 승인 상태가 되면 주문 생성 트랜잭션이 끝나기 때문에 Saga 인스턴스를 삭제시킨다.
+
+
+
+**[OrderOrchestrator] OrderPaymentFinished.kt**
+
+```kotlin
+class OrderPaymentFinished: OrderSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.ORDER_COMPLETED,
+            saga.key,
+            OrderCompleted(saga.orderId)
+        ).awaitSingle()
+    }
+}
+```
+
+* OrderPaymentFinished 상태인 Saga 인스턴스는 다음 스텝인 주문 승인 처리를 하기위해 ORDER_COMPLETED 이벤트를 발행한다.
+
+
+
+**[OrderService] OrderCompletedEventListener.kt**
+
+```kotlin
+@Component
+class OrderCompletedEventListener(
+    private val objectMapper: ObjectMapper,
+    private val orderCommandService: OrderCommandService
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [ORDER_COMPLETED], groupId = "order-consumer", containerFactory = "orderCompletedEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), OrderCompleted::class.java)
+
+        logger.info("Topic: $ORDER_COMPLETED, key: $key, event: $event")
+
+        boundedElasticScope.launch {
+            orderCommandService.approve(event.orderId)
+        }
+
+        acknowledgment.acknowledge()
+    }
+}
+```
+
+* OrderService에서 ORDER_COMPLETED 이벤트를 발행하여 주문을 승인 상태로 만들어놓는다.
+* 주문 생성 트랜잭션을 요청하는 주체가 OrderService지만, Orchestrator에서 비즈니스 로직을 심으면 안되기 때문에 주문 승인 / 취소 처리를 하는 로직을 OrderService로 두었다. 
+
+
+
+#### 실패 시나리오
+
+만약 결제를 실패했을 경우에는 **(1)주문 수량만큼 뺐던 상품 수량을 다시 되돌리고**, **(2)주문을 취소 상태로** 만들어야 한다.
+
+결제 실패가 되면 PAYMENT_FAILED 이벤트를 발행하는데 OrderOrchestrator가 이 이벤트를 수신하여 상품 수량을 롤백시키고 주문을 취소 상태로 만들어 놓는다.
+
+
+
+**[OrderOrchestrator] OrderPaymentFailedEventListener.kt**
+
+```kotlin
+@Component
+class OrderPaymentFailedEventListener(
+    private val objectMapper: ObjectMapper,
+    private val sagaRepository: SagaRepository
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [PAYMENT_FAILED], groupId = "order-orchestrator", containerFactory = "orderPaymentFailedEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), PaymentFailed::class.java)
+
+        logger.info("Topic: $PAYMENT_FAILED, key: $key, event: $event")
+        logger.info("Failure reason: ${event.failureReason}")
+
+        sagaRepository.findById(key)?.let {
+            boundedElasticScope.launch {
+                it.changeStateAndOperate(
+                    OrderPaymentFailed(event.failureReason)
+                )
+            }
+            acknowledgment.acknowledge()
+        }
+    }
+}
+
+```
+
+
+
+**[OrderOrchestrator] OrderPaymentFailed.kt**
+
+```kotlin
+class OrderPaymentFailed(
+    val failureReason: String
+): OrderSagaState {
+
+    override suspend fun operate(saga: OrderSaga) {
+        saga.publishEvent(
+            Topic.PRODUCT_ROLLBACK,
+            saga.key,
+            ProductRollBackEvent(saga.productId, saga.count, failureReason)
+        ).awaitSingle()
+    }
+}
+```
+
+* OrderPaymentFailed 상태에서는 보상 트랜잭션을 실행한다.
+* 상품을 롤백시키는 보상 트랜잭션을 실행하기 위해 CHECK_PRODUCT_ROLLBACK 이벤트를 발행한다.
+
+
+
+SAGA에서는 롤백을 직접 애플리케이션 단에서 구현해야 한다. 상품 수량을 롤백시키기 위해 Product Service 에서 리스너를 만든다.
+
+**[ProductService] ProductRollBackEventListener.kt**
+
+```kotlin
+@Component
+class ProductRollBackEventListener(
+    private val objectMapper: ObjectMapper,
+    private val productCommandService: ProductCommandService,
+    private val transactionEventPublisher: TransactionEventPublisher
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [PRODUCT_ROLLBACK], groupId = "product-consumer", containerFactory = "productRollBackEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), ProductRollBackEvent::class.java)
+
+        logger.info("Topic: $PRODUCT_ROLLBACK, key: $key, event: $event")
+
+        productCommandService.incrementProductCount(event)
+
+        boundedElasticScope.launch {
+            transactionEventPublisher.publishEvent(
+                topic = Topic.ORDER_ROLLBACKED,
+                key = key,
+                event = OrderRollBacked(event.failueReason)
+            ).awaitFirstOrNull()
+        }
+
+        acknowledgment.acknowledge()
+    }
+}
+```
+
+* incrementProductCount() 메서드로 주문 수량만큼 뺀 상품의 수량을 다시 추가시킨다.
+* 롤백이 완료되면 ORDER_ROLLBACKED 이벤트를 발행하여 주문을 취소 상태로 만든다.
+
+
+
+롤백이 완료되면 ORDER_ROLLBACKED 이벤트를 수신하는 OrderOrchestrator측에서 주문을 취소 상태로 만들기 위해 Saga 상태를 OrderRollbacked로 바꾼다.
+
+**[OrderOrchestrator] OrderRollBackedEventListener.kt**
+
+```kotlin
+@Component
+class OrderRollBackedEventListener(
+    private val objectMapper: ObjectMapper,
+    private val sagaRepository: SagaRepository
+) : AcknowledgingMessageListener<String, String> {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
+
+    @KafkaListener(topics = [ORDER_ROLLBACKED], groupId = "order-orchestrator", containerFactory = "orderProductCheckFailedEventListenerContainerFactory")
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+        val (key, event) = data.key() to objectMapper.readValue(data.value(), CheckProductFailed::class.java)
+
+        logger.info("Topic: $ORDER_ROLLBACKED, key: $key, event: $event")
+
+        sagaRepository.findById(key)?.let {
+            boundedElasticScope.launch {
+                it.changeStateAndOperate(
+                    OrderRollBacked(event.failureReason)
+                )
+                sagaRepository.deleteById(key)
+            }
+            acknowledgment.acknowledge()
+        }
+    }
+}
+```
+
+* Saga 인스턴스가 OrderRollBacked 상태가 되면 주문을 취소 상태로 만든다.
+* 주문이 취소 상태가 되면 주문 생성 트랜잭션이 끝나기 때문에 해당 Saga 인스턴스를 삭제시킨다.
 
 

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import reactor.core.publisher.Mono
 import reactor.kafka.sender.SenderResult
 
-class OrderSaga (
+class OrderSaga private constructor (
     private val eventPublisher: TransactionEventPublisher,
     private var state: OrderSagaState,
     val orderId: Int,
