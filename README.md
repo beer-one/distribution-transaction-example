@@ -253,20 +253,14 @@ class OrderSaga private constructor (
 
 SagaState는 Saga의 상태를 나타내며, 이 객체에 해당 상태에 맞는 액션을 정의하는 인터페이스다.
 
-일단 나는 일반적인 SagaState와 보상 트랜잭션을 구현해야 하는 CompensatingSagaState 인터페이스를 정의하였다.
-
 ```kotlin
 interface OrderSagaState {
     suspend fun operate(saga: OrderSaga)
 }
 
-interface CompensatingSagaState {
-    suspend fun doCompensatingTransaction(saga: OrderSaga)
-}
 ```
 
 * operate() 메서드에 해당 상태에 따른 액션을 구현하면 된다.
-* doCompensatingTransaction() 메서드에서는 보상 트랜잭션 기능을 구현한다. 이 또한 이벤트를 발행하여 구현할 것이다.
 
 
 
@@ -301,23 +295,13 @@ class OrderProductChecked (
 
 class OrderPaymentFailed(
     val failureReason: String
-): OrderSagaState, CompensatingSagaState {
+): OrderSagaState {
 
     override suspend fun operate(saga: OrderSaga) {
-        doCompensatingTransaction(saga)
-
         saga.publishEvent(
-            Topic.ORDER_FAILED,
+            Topic.PRODUCT_ROLLBACK,
             saga.key,
-            OrderFailed(saga.orderId, failureReason)
-        ).awaitSingle()
-    }
-
-    override suspend fun doCompensatingTransaction(saga: OrderSaga) {
-        saga.publishEvent(
-            Topic.CHECK_PRODUCT_ROLLBACK,
-            saga.key,
-            ProductRollBackEvent(saga.productId, saga.count)
+            ProductRollBackEvent(saga.productId, saga.count, failureReason)
         ).awaitSingle()
     }
 }
