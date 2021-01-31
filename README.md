@@ -795,3 +795,208 @@ class OrderRollBackedEventListener(
 * 주문이 취소 상태가 되면 주문 생성 트랜잭션이 끝나기 때문에 해당 Saga 인스턴스를 삭제시킨다.
 
 
+
+
+
+## 결과
+
+Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실제로 API를 만들어 요청 한 다음 잘 되는지 보고 결과를 분석해보았다.
+
+실험 데이터는 아래와 같이 설정해두었다.
+
+**상품**
+
+```kotlin
+{
+  "id": 1,
+  "name": "사과",
+  "count": 30,
+  "price": 2000
+}
+```
+
+**회원 계좌**
+
+```kotlin
+{
+  "id": 1,
+  "customerId" 1,
+  "balance": 54000
+}
+```
+
+실험 환경에는 2000원 짜리 물건이 30개 있고, 회원 계좌에는 54000원이 쌓여있다. 그리고 주문은 2000원짜리 5개를 요청할 것이다.
+
+**주문**
+
+```kotlin
+{
+  "productId": 1,
+  "count": 5,
+  "customerId": 1
+}
+```
+
+
+
+2000원짜리 5개 주문을 15번 요청해보았다. 잔액이 54000원 있기 때문에 5번은 성공할 것이고 10번은 실패할 것이다.
+
+![스크린샷 2021-01-31 오후 9.03.51](/Users/yunseowon/Desktop/request.png)
+
+
+
+그리고 주문 결과를 확인해보았다
+
+```json
+[
+    {
+        "id": 96,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "APPROVED",
+        "canceledReason": ""
+    },
+    {
+        "id": 97,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "APPROVED",
+        "canceledReason": ""
+    },
+    {
+        "id": 98,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "APPROVED",
+        "canceledReason": ""
+    },
+    {
+        "id": 99,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "APPROVED",
+        "canceledReason": ""
+    },
+    {
+        "id": 100,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "APPROVED",
+        "canceledReason": ""
+    },
+    {
+        "id": 101,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+    },
+    {
+        "id": 102,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+    },
+    {
+        "id": 103,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+    },
+    {
+        "id": 104,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+    },
+    {
+        "id": 105,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+    },
+    {
+        "id": 106,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+    },
+    {
+        "id": 107,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+    },
+    {
+        "id": 108,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+    },
+    {
+        "id": 109,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+    },
+    {
+        "id": 110,
+        "productId": 1,
+        "count": 5,
+        "customerId": 1,
+        "orderStatus": "CANCELED",
+        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+    }
+]
+```
+
+예상과 같게 5번은 APPROVED 상태고 10번은 CANCELED 상태로 저장되었다. 하지만 canceledReason을 보면 **(1) 잔액이 부족합니다.** 와 **(2) 상품의 재고가 부족합니다.** 라는 두 가지 사유가 있다.
+
+실험 데이터 대로라면 결과적으로는 상품의 재고는 5개 남아있지만 **상품의 재고가 부족합니다.** 라는 사유도 같이 있다. 해당 예시에서 SAGA의 단점(또는 한계?)가 드러나는데 SAGA 패턴은 **Isolation**을 지원하지 않는다.
+
+
+
+## ACD(?)
+
+분산 트랜잭션에서 2PC와는 다르게 Saga는 DBMS에서 지원하는 트랜잭션을 사용할 수 없기 때문에 Isolation을 지원하지 않는다.
+
+* Atomicity: 트랜잭션, 보상 트랜잭션으로 All or Nothing 보장
+* Consistency: 한 서비스 내의 일관성은 로컬 DB가, 여러 서비스 간의 일관성은 애플리케이션에서 보장
+* Duratility: 각 서비스의 로컬 DB가 보장
+
+
+
+
+
+
+
+## Saga 패턴의 한계(?) 또는 이슈
+
+* 디버깅이 힘들다. (여러 마이크로 서비스를 뜯어봐야 한다.)
+* 복잡성이 커진다.
+* 애플리케이션에서 롤백 시나리오를 구현하기 때문에 DBMS에서 제공하는 롤백을 사용할 수 없다. (오직 커밋만..)
+* Saga 워크플로우를 모니터링 할 수 있으면 좋다.
+* Isolation을 지원하지 않는다.
+
