@@ -25,18 +25,23 @@ class KafkaConsumerConfiguration(
     }
 
     @Bean
-    fun orderPaymentSucceedEventListenerContainerFactory(orderPaymentCompletedEventListener: OrderPaymentCompletedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
+    fun orderPaymentCompletedEventListenerContainerFactory(orderPaymentCompletedEventListener: OrderPaymentCompletedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
         return makeFactory(orderPaymentCompletedEventListener)
     }
 
     @Bean
-    fun orderProductCheckSucceedEventListenerContainerFactory(orderProductCheckCompletedEventListener: OrderProductCheckCompletedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
+    fun orderProductCheckCompletedEventListenerContainerFactory(orderProductCheckCompletedEventListener: OrderProductCheckCompletedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
         return makeFactory(orderProductCheckCompletedEventListener)
     }
 
     @Bean
     fun orderProductCheckFailedEventListenerContainerFactory(orderProductCheckFailedEventListener: OrderProductCheckFailedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
         return makeFactory(orderProductCheckFailedEventListener)
+    }
+
+    @Bean
+    fun orderProductCheckFailedEventListenerContainerFactory(orderRollBackedEventListener: OrderRollBackedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory(orderRollBackedEventListener)
     }
 
 
