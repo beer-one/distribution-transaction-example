@@ -14,7 +14,7 @@ object Topic {
 
 
     const val ORDER_CREATED = "ORDER-CREATED"
-    const val ORDER_ROLLBACKED = "ORDER_ROLLBACKED"
+    const val ORDER_ROLLBACKED = "ORDER-ROLLBACKED"
 
     const val ORDER_FAILED = "ORDER-FAILED"
     const val ORDER_COMPLETED = "ORDER-COMPLETED"
