@@ -838,21 +838,34 @@ class OrderRollBackedEventListener(
 * Saga 인스턴스가 OrderRollBacked 상태가 되면 주문을 취소 상태로 만든다.
 * 주문이 취소 상태가 되면 주문 생성 트랜잭션이 끝나기 때문에 해당 Saga 인스턴스를 삭제시킨다.
 
-
-
-
-
 <br>
 
-## 결과
 
-Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실제로 API를 만들어 요청 한 다음 잘 되는지 보고 결과를 분석해보았다.
+## Test
 
-실험 데이터는 아래와 같이 설정해두었다.
+### Prerequisites
+docker-compose를 사용하여 테스트 환경을 간단히 만들어보자.
+
+```shell
+$ cd dockers
+$ docker-compose up -d
+```
+
+
+Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실제로 API를 만들어 요청 한 다음 잘 되는지 보고 결과를 분석해보았다. 실험 데이터는 아래와 같이 설정해두었다.
+* 처음 애플리케이션을 구동할 때 `application.yaml`의 `spring.jpa.generate-ddl: true`로 설정하여 테이블을 자동 생성한 후 다음과 같이 요청하여 데이터를 추가하자.
+
+```shell
+# 회원 계좌 생성
+$ curl -XPOST -H 'Content-Type: application/json' "localhost:6000/accounts" -d '{"customerId": 1, "balance": 54000}'
+
+# 상품 생성
+curl -XPOST -H 'Content-Type: application/json' "localhost:6020/products" -d '{"name": "사과", "count": 30, "price": 2000}'
+```
 
 **상품**
 
-```kotlin
+```json
 {
   "id": 1,
   "name": "사과",
@@ -863,19 +876,22 @@ Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실
 
 **회원 계좌**
 
-```kotlin
+```json
 {
   "id": 1,
-  "customerId" 1,
+  "customerId": 1,
   "balance": 54000
 }
 ```
 
 실험 환경에는 2000원 짜리 물건이 30개 있고, 회원 계좌에는 54000원이 쌓여있다. 그리고 주문은 2000원짜리 5개를 요청할 것이다.
 
+```shell
+$ curl 
+```
 **주문**
 
-```kotlin
+```json
 {
   "productId": 1,
   "count": 5,
@@ -884,135 +900,143 @@ Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실
 ```
 
 
-
 2000원짜리 5개 주문을 15번 요청해보았다. 잔액이 54000원 있기 때문에 5번은 성공할 것이고 10번은 실패할 것이다.
 
+```shell
+# 15번 요청
+$ curl -XPOST -H 'Content-Type: application/json' "localhost:6010/orders" -d '{"productId": 1, "count": 5, "customerId": 1}'
+```
 <br>
 
 그리고 주문 결과를 확인해보았다
 
+```shell
+# 주문 결과 확인
+$ curl -XGET -H 'Content-Type: application/json' "localhost:6010/orders?customerId=1" | jq .
+```
+
 ```json
 [
-    {
-        "id": 96,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "APPROVED",
-        "canceledReason": ""
-    },
-    {
-        "id": 97,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "APPROVED",
-        "canceledReason": ""
-    },
-    {
-        "id": 98,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "APPROVED",
-        "canceledReason": ""
-    },
-    {
-        "id": 99,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "APPROVED",
-        "canceledReason": ""
-    },
-    {
-        "id": 100,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "APPROVED",
-        "canceledReason": ""
-    },
-    {
-        "id": 101,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
-    },
-    {
-        "id": 102,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
-    },
-    {
-        "id": 103,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
-    },
-    {
-        "id": 104,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
-    },
-    {
-        "id": 105,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
-    },
-    {
-        "id": 106,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
-    },
-    {
-        "id": 107,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
-    },
-    {
-        "id": 108,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
-    },
-    {
-        "id": 109,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
-    },
-    {
-        "id": 110,
-        "productId": 1,
-        "count": 5,
-        "customerId": 1,
-        "orderStatus": "CANCELED",
-        "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
-    }
+  {
+    "id": 1,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "APPROVED",
+    "canceledReason": ""
+  },
+  {
+    "id": 2,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "APPROVED",
+    "canceledReason": ""
+  },
+  {
+    "id": 3,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "APPROVED",
+    "canceledReason": ""
+  },
+  {
+    "id": 4,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "APPROVED",
+    "canceledReason": ""
+  },
+  {
+    "id": 5,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "APPROVED",
+    "canceledReason": ""
+  },
+  {
+    "id": 6,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+  },
+  {
+    "id": 7,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+  },
+  {
+    "id": 8,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+  },
+  {
+    "id": 9,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+  },
+  {
+    "id": 10,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+  },
+  {
+    "id": 11,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+  },
+  {
+    "id": 12,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+  },
+  {
+    "id": 13,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+  },
+  {
+    "id": 14,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "잔액이 부족합니다. current: 4000, required: 10000"
+  },
+  {
+    "id": 15,
+    "productId": 1,
+    "count": 5,
+    "customerId": 1,
+    "orderStatus": "CANCELED",
+    "canceledReason": "상품의 재고가 부족합니다. current: 0, required: 5"
+  }
 ]
 ```
 

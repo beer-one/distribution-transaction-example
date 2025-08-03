@@ -1,0 +1,9 @@
+jib {
+    from {
+        image = "eclipse-temurin:17-jre-alpine-3.20"
+    }
+    to {
+        image = "beer1/saga-example-account-service"
+        tags = setOf("dev")
+    }
+}

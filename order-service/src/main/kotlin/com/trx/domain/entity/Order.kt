@@ -1,7 +1,7 @@
 package com.trx.domain.entity
 
 import com.trx.domain.enums.OrderStatus
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "o_order")

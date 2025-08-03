@@ -15,42 +15,41 @@ class KafkaConsumerConfiguration(
 ) {
 
     @Bean
-    fun orderCreationEventListenerContainerFactory(orderCreationEventListener: OrderCreationEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderCreationEventListener)
+    fun orderCreationEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
     @Bean
-    fun orderPaymentFailedEventListenerContainerFactory(orderPaymentFailedEventListener: OrderPaymentFailedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderPaymentFailedEventListener)
+    fun orderPaymentFailedEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
     @Bean
-    fun orderPaymentCompletedEventListenerContainerFactory(orderPaymentCompletedEventListener: OrderPaymentCompletedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderPaymentCompletedEventListener)
+    fun orderPaymentCompletedEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
     @Bean
-    fun orderProductCheckCompletedEventListenerContainerFactory(orderProductCheckCompletedEventListener: OrderProductCheckCompletedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderProductCheckCompletedEventListener)
+    fun orderProductCheckCompletedEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
     @Bean
-    fun orderProductCheckFailedEventListenerContainerFactory(orderProductCheckFailedEventListener: OrderProductCheckFailedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderProductCheckFailedEventListener)
+    fun orderProductCheckFailedEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
     @Bean
-    fun orderProductCheckFailedEventListenerContainerFactory(orderRollBackedEventListener: OrderRollBackedEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderRollBackedEventListener)
+    fun orderRollBackedEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
 
-    private fun makeFactory(listener: AcknowledgingMessageListener<String, String>): ConcurrentKafkaListenerContainerFactory<String, String> {
+    private fun makeFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         return ConcurrentKafkaListenerContainerFactory<String, String>().apply {
             consumerFactory = consumerFactory()
             containerProperties.ackMode = kafkaProperties.listener.ackMode
             setConcurrency(3)
-            containerProperties.messageListener = listener
             containerProperties.pollTimeout = 5000
         }
     }

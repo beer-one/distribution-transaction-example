@@ -1,21 +1,24 @@
 import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
 
 plugins {
-    id("org.springframework.boot") version "2.3.1.RELEASE"
-    id("io.spring.dependency-management") version "1.0.9.RELEASE"
-    kotlin("jvm") version "1.3.72"
-    kotlin("kapt") version "1.3.61"
-    kotlin("plugin.spring") version "1.3.72"
-    kotlin("plugin.jpa") version "1.3.72"
+    id("org.springframework.boot") version "3.4.8"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("com.google.cloud.tools.jib") version "3.3.1"
+
+    kotlin("jvm") version "1.8.21"
+    kotlin("plugin.spring") version "1.8.21"
+    kotlin("kapt") version "1.8.21"
+    kotlin("plugin.jpa") version "1.8.21"
 }
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_11
 
-ext["spring.version"] = "5.2.8.RELEASE"
-val springCloudVersion = "Hoxton.SR8"
-val jacksonVersion = "2.11.1"
+ext["spring.version"] = "3.4.8"
+val springCloudVersion = "2024.0.2"
+
+// @see https://github.com/Kotlin/kotlinx.coroutines/tree/1.7.3?tab=readme-ov-file#using-in-your-projects
+val coroutineVersion = "1.7.3"
 
 subprojects {
     apply(plugin = "kotlin")
@@ -25,6 +28,12 @@ subprojects {
     apply(plugin = "kotlin-kapt")
     apply(plugin = "kotlin-spring")
     apply(plugin = "kotlin-jpa")
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
 
     repositories {
         mavenCentral()
@@ -40,15 +49,14 @@ subprojects {
         implementation(kotlin("stdlib-jdk8"))
         implementation("org.springframework.boot:spring-boot-starter")
         implementation("org.springframework.boot:spring-boot-starter-webflux")
-        developmentOnly("org.springframework.boot:spring-boot-devtools")
 
         // jpa & querydsl
         implementation("org.springframework.boot:spring-boot-starter-data-jpa")
         kapt("org.springframework.boot:spring-boot-configuration-processor")
 
-        runtimeOnly("mysql:mysql-connector-java")
+        runtimeOnly("com.mysql:mysql-connector-j")
 
-        implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
+        implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
         implementation("org.jetbrains.kotlin:kotlin-reflect")
         implementation("org.jetbrains.kotlin:kotlin-stdlib")
 
@@ -60,23 +68,20 @@ subprojects {
         implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
         // coroutine
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.3.9")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.3.9")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutineVersion}")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactive:${coroutineVersion}")
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:${coroutineVersion}")
+
+        // actuator & monitoring
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("io.micrometer:micrometer-registry-prometheus")
+        implementation("io.micrometer:micrometer-core")
     }
 
-    if(project.name != "core") {
+    if (project.name != "core") {
+        apply(plugin = "com.google.cloud.tools.jib")
         dependencies {
             implementation(project(":core"))
-        }
-    }
-
-    tasks {
-        compileKotlin {
-            kotlinOptions.jvmTarget = "1.8"
-        }
-        compileTestKotlin {
-            kotlinOptions.jvmTarget = "1.8"
         }
     }
 }

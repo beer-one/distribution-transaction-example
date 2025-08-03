@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 1
+    volumes:
+      - ./kafka-volume:/var/run/docker.sock
+    ports:
+      - "9092:9092"
+    networks:
+      - saga-test
+
+  init-topics:
+    image: apache/kafka:3.9.1
+    depends_on:
+      - kafka
+    entrypoint: [ "/bin/sh", "-c" ]
+    environment:
+      KAFKA_CREATE_TOPICS: "CHECK-PRODUCT,APPLY-PAYMENT,CHECK-PRODUCT-COMPLETED,CHECK-PRODUCT-FAILED,PAYMENT-COMPLETED,PAYMENT-FAILED,PRODUCT-ROLLBACK,ORDER-CREATED,ORDER-ROLLBACKED,ORDER-FAILED,ORDER-COMPLETED"
+    command: >
+      "
+      echo '🟡 Waiting for Kafka to be ready...';
+      while ! nc -z kafka 9092; do sleep 1; done;
+      echo '✅ Kafka is ready. Creating topics...';
+      IFS=","
+
+      for topic in $KAFKA_CREATE_TOPICS; do
+      kafka-topics.sh --create --topic $topic --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1;
+      done
+
+      echo '✅ Topics created.';
+      "
+    networks:
+      - saga-test
+
+  mysql:
+    image: mysql:8.4.6
+    container_name: mysql
+    command: --mysql_native_password=ON
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-volume:/var/lib/mysql
+      - ./mysql-conf/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    security_opt:
+      - seccomp=unconfined
+    networks:
+      - saga-test
+
+  account-service:
+    image: beer1/saga-example-account-service
+    container_name: account-service
+    restart: always
+    environment:
+      SPRING_JPA_GENERATE_DDL: true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/saga_account?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "6000:6000"
+    depends_on:
+      - kafka
+      - mysql
+    networks:
+      - saga-test
+
+  order-service:
+    image: beer1/saga-example-order-service
+    container_name: order-service
+    restart: always
+    ports:
+      - "6010:6010"
+    environment:
+      SPRING_JPA_GENERATE_DDL: true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/saga_order?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+      - mysql
+    networks:
+      - saga-test
+
+  product-service:
+    image: beer1/saga-example-product-service
+    container_name: product-service
+    restart: always
+    ports:
+      - "6020:6020"
+    environment:
+      SPRING_JPA_GENERATE_DDL: true
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/saga_product?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+      - mysql
+    networks:
+      - saga-test
+
+  order-orchestrator:
+    image: beer1/saga-example-order-orchestrator
+    container_name: order-orchestrator
+    restart: always
+    ports:
+      - "6030:6030"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/saga_order?useSSL=false&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+      - mysql
+    networks:
+      - saga-test
+networks:
+  saga-test:
+    driver: bridge
