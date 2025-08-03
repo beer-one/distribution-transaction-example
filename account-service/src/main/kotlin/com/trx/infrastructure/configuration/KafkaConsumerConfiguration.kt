@@ -1,6 +1,8 @@
 package com.trx.infrastructure.configuration
 
 import com.trx.presentation.listener.AccountEventListener
+import com.trx.topic.Topic
+import com.trx.topic.Topic.APPLY_PAYMENT
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,16 +17,15 @@ class KafkaConsumerConfiguration(
 ) {
 
     @Bean
-    fun accountEventListenerContainerFactory(accountEventListener: AccountEventListener): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(accountEventListener)
+    fun accountEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
-    private fun makeFactory(listener: AcknowledgingMessageListener<String, String>): ConcurrentKafkaListenerContainerFactory<String, String> {
+    private fun makeFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         return ConcurrentKafkaListenerContainerFactory<String, String>().apply {
             consumerFactory = consumerFactory()
             containerProperties.ackMode = kafkaProperties.listener.ackMode
             setConcurrency(3)
-            containerProperties.messageListener = listener
             containerProperties.pollTimeout = 5000
         }
     }

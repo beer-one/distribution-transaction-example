@@ -1,7 +1,7 @@
 package com.trx.domain.entity
 
 import com.trx.errors.exception.InsufficientBalanceException
-import javax.persistence.*
+import jakarta.persistence.*
 
 @Entity
 @Table(name = "account")

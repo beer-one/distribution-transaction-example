@@ -16,25 +16,20 @@ class KafkaConsumerConfiguration(
 ) {
 
     @Bean
-    fun orderCompletedEventListenerContainerFactory(
-        orderCompletedEventListener: OrderCompletedEventListener
-    ): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderCompletedEventListener)
+    fun orderCompletedEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
     @Bean
-    fun orderFailedEventListenerContainerFactory(
-        orderFailedEventListener: OrderFailedEventListener
-    ): ConcurrentKafkaListenerContainerFactory<String, String> {
-        return makeFactory(orderFailedEventListener)
+    fun orderFailedEventListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
+        return makeFactory()
     }
 
-    private fun makeFactory(listener: AcknowledgingMessageListener<String, String>): ConcurrentKafkaListenerContainerFactory<String, String> {
+    private fun makeFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         return ConcurrentKafkaListenerContainerFactory<String, String>().apply {
             consumerFactory = consumerFactory()
             containerProperties.ackMode = kafkaProperties.listener.ackMode
             setConcurrency(3)
-            containerProperties.messageListener = listener
             containerProperties.pollTimeout = 5000
         }
     }

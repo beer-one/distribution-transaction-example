@@ -11,9 +11,9 @@ spring:
 
   jpa:
     show-sql: true
-    generate-ddl: false
+    generate-ddl: true
     database: mysql
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl

@@ -30,7 +30,7 @@ class AccountEventListener(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(topics = [APPLY_PAYMENT], groupId = "account-consumer", containerFactory = "accountEventListenerContainerFactory")
-    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment) {
+    override fun onMessage(data: ConsumerRecord<String, String>, acknowledgment: Acknowledgment?) {
         val (key, event) = (data.key() to objectMapper.readValue(data.value(), ApplyPaymentEvent::class.java))
 
         logger.info("Topic: $APPLY_PAYMENT, key: $key, event: $event")
@@ -56,6 +56,6 @@ class AccountEventListener(
             }
         }
 
-        acknowledgment.acknowledge()
+        acknowledgment?.acknowledge()
     }
 }

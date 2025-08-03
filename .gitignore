@@ -33,7 +33,7 @@ out/
 .vscode/
 
 ### mysql volume ###
-dockers/mysql/data*
+dockers/mysql-volume/
 
 ## kafka volume ##
-dockers/kafka/volume*
+dockers/kafka-volume/
