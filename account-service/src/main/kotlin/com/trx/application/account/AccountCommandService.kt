@@ -3,6 +3,7 @@ package com.trx.application.account
 import com.trx.domain.entity.Account
 import com.trx.domain.repository.AccountRepository
 import com.trx.errors.exception.AccountNotFoundException
+import com.trx.errors.exception.ExistedAccountException
 import com.trx.presentation.request.AccountCreateRequest
 import com.trx.presentation.request.DepositRequest
 import com.trx.topic.event.ApplyPaymentEvent
@@ -31,6 +32,9 @@ class AccountCommandService (
 
     @Transactional
     fun create(request: AccountCreateRequest) {
+        if (accountRepository.findByCustomerId(request.customerId))
+            throw ExistedAccountException(request.customerId)
+
         accountRepository.save(
             Account(
                 customerId = request.customerId,
