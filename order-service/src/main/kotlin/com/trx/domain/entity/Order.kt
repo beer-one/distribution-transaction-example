@@ -4,7 +4,7 @@ import com.trx.domain.enums.OrderStatus
 import jakarta.persistence.*
 
 @Entity
-@Table(name = "o_order")
+@Table(name = "product_order")
 data class Order(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

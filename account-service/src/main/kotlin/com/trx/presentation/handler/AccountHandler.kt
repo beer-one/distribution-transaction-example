@@ -4,7 +4,6 @@ import com.trx.application.account.AccountCommandService
 import com.trx.domain.repository.AccountRepository
 import com.trx.errors.exception.AccountNotFoundException
 import com.trx.errors.exception.IncorrectParameterException
-import com.trx.errors.exception.MissingParameterException
 import com.trx.presentation.request.AccountCreateRequest
 import com.trx.presentation.request.DepositRequest
 import org.springframework.stereotype.Component

@@ -10,8 +10,7 @@ data class Account(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Int = 0,
 
-    @Column(name = "customer_id")
-    @UniqueConstraint
+    @Column(name = "customer_id", unique = true)
     val customerId: Int,
 
     var balance: Int

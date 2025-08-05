@@ -2,6 +2,7 @@ package com.trx.presentation.handler
 
 import com.trx.application.product.ProductCommandService
 import com.trx.domain.repository.ProductRepository
+import com.trx.errors.exception.IncorrectFormatBodyException
 import com.trx.errors.exception.ProductNotFoundException
 import com.trx.presentation.request.ProductCreateRequest
 import com.trx.presentation.request.ProductIncrementRequest
@@ -31,7 +32,7 @@ class ProductHandler (
 
     suspend fun create(request: ServerRequest): ServerResponse {
         val createRequest = request.awaitBodyOrNull<ProductCreateRequest>()
-            ?: throw Exception()
+            ?: throw IncorrectFormatBodyException()
 
         commandService.create(createRequest)
         return noContent().buildAndAwait()

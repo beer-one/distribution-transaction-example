@@ -32,7 +32,7 @@ class AccountCommandService (
 
     @Transactional
     fun create(request: AccountCreateRequest) {
-        if (accountRepository.findByCustomerId(request.customerId))
+        if (accountRepository.findByCustomerId(request.customerId) != null)
             throw ExistedAccountException(request.customerId)
 
         accountRepository.save(

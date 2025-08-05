@@ -3,6 +3,7 @@ package com.trx.presentation.handler
 import com.trx.application.order.OrderCommandService
 import com.trx.application.order.OrderQueryService
 import com.trx.errors.exception.IncorrectFormatBodyException
+import com.trx.errors.exception.IncorrectParameterException
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import com.trx.presentation.request.OrderRequest
@@ -27,7 +28,7 @@ class OrderHandler(
 
     suspend fun getAll(request: ServerRequest): ServerResponse {
         val customerId = request.queryParamOrNull("customerId")?.toInt()
-            ?: throw Exception()
+            ?: throw IncorrectParameterException("customerId")
 
         return orderQueryService.getAll(customerId).let {
             ok().bodyValueAndAwait(it)
@@ -36,7 +37,7 @@ class OrderHandler(
 
     suspend fun deleteAll(request: ServerRequest): ServerResponse {
         val customerId = request.queryParamOrNull("customerId")?.toInt()
-            ?: throw Exception()
+            ?: throw IncorrectParameterException("customerId")
 
         orderCommandService.deleteAll(customerId)
 
