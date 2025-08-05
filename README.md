@@ -10,6 +10,20 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 
 <br>
 
+## 목차
+
+### [1.접근법](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%EC%A0%91%EA%B7%BC%EB%B2%95)
+ * [Two Phase Commit Protocol](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#two-phase-commit-protocol)
+
+### [2. SAGA Pattern](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#saga)
+  * [Choreography based](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#choreography-based-saga)
+  * [Orchestration based](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#orchestration-based-saga)
+
+### [3. 테스트 프로젝트](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%ED%85%8C%EC%8A%A4%ED%8A%B8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8)
+  * [프로젝트 구조](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B5%AC%EC%A1%B0)
+  * 
+
+
 ## 접근법
 
 분산 트랜잭션을 적용하는 방법으로는 크게 두 가지가 있다.
@@ -181,7 +195,7 @@ Orchestrator가 각 변환이 Command나 message에 해당하는 상태 시스�
 
 <br>
 
-## 현 프로젝트
+## 테스트 프로젝트
 
 [State Pattern](https://github.com/YunSeoWon/TIL-1YEAR/tree/main/design-patterns/state-machine)을 이용해서 Orchestration based SAGA를 구현해볼 예정이다.
 
@@ -196,13 +210,11 @@ SAGA 실습 프로젝트 구조는 아래 그림과 같다.
 
 ![스크린샷 2021-01-27 오후 11 57 23](https://user-images.githubusercontent.com/35602698/106384714-9e6a8480-640f-11eb-8927-1d4f517705f8.png)
 
-
-
-
-
 <br>
 
-### FSM
+### Orchestration based SAGA 구현
+
+#### FSM
 
 먼저 실습을 시작하기 앞서, 주문 로직을 Final State Machine을 표현해보았다.
 
@@ -227,7 +239,7 @@ SAGA 실습 프로젝트 구조는 아래 그림과 같다.
 
 <br>
 
-### SAGA
+#### SAGA 코드 구현
 
 SAGA는 하나의 비즈니스 트랜잭션의 흐름을 관리하는 객체로 트랜잭션에 관한 상태를 가지고 있으며, 해당 상태에서 다음 상태로 가기 위한 적절한 액션을 취하는 객체이다. 
 
@@ -286,7 +298,7 @@ class OrderSaga private constructor (
 
 <br>
 
-### SagaState
+#### SagaState 코드 구현
 
 SagaState는 Saga의 상태를 나타내며, 이 객체에 해당 상태에 맞는 액션을 정의하는 인터페이스다.
 
@@ -365,7 +377,7 @@ class OrderPaymentFinished: OrderSagaState {
 
 <br>
 
-### SAGA 객체 생성, 트랜잭션 흘러가는 과정
+### SAGA 트랜잭션 흘러가는 과정
 
 먼저 주문의 정상적인 시나리오를 도식화하면 다음과 같다.
 
@@ -841,7 +853,7 @@ class OrderRollBackedEventListener(
 <br>
 
 
-## Test
+## 테스트 프로젝트 실습
 
 ### Prerequisites
 docker-compose를 사용하여 테스트 환경을 간단히 만들어보자.
