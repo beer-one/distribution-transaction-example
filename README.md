@@ -21,7 +21,11 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 
 ### [3. 테스트 프로젝트](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%ED%85%8C%EC%8A%A4%ED%8A%B8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8)
   * [프로젝트 구조](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B5%AC%EC%A1%B0)
-  * 
+  * [Orchestration based SAGA 구현](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#orchestration-based-saga-%EA%B5%AC%ED%98%84)
+  * [SAGA 트랜잭션 흘러가는 과정](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#saga-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%ED%9D%98%EB%9F%AC%EA%B0%80%EB%8A%94-%EA%B3%BC%EC%A0%95)
+
+### [4. 테스트 프로젝트 실습](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%ED%85%8C%EC%8A%A4%ED%8A%B8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%8B%A4%EC%8A%B5)
+  * [Prerequisites](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#prerequisites)
 
 
 ## 접근법
@@ -863,6 +867,7 @@ $ cd dockers
 $ docker-compose up -d
 ```
 
+### 초기 데이터 생성
 
 Saga 패턴을 이용하여 분산 트랜잭션 환경을 만들어봤는데 실제로 API를 만들어 요청 한 다음 잘 되는지 보고 결과를 분석해보았다. 실험 데이터는 아래와 같이 설정해두었다.
 * 처음 애플리케이션을 구동할 때 `application.yaml`의 `spring.jpa.generate-ddl: true`로 설정하여 테이블을 자동 생성한 후 다음과 같이 요청하여 데이터를 추가하자.
@@ -895,6 +900,8 @@ curl -XPOST -H 'Content-Type: application/json' "localhost:6020/products" -d '{"
   "balance": 54000
 }
 ```
+
+### 주문 생성으로 SAGA 실습
 
 실험 환경에는 2000원 짜리 물건이 30개 있고, 회원 계좌에는 54000원이 쌓여있다. 그리고 주문은 2000원짜리 5개를 요청할 것이다.
 
@@ -1060,7 +1067,9 @@ $ curl -XGET -H 'Content-Type: application/json' "localhost:6010/orders?customer
 
 <br>
 
-## ACD(?)
+## 마무리
+
+### SAGA의 특성
 
 분산 트랜잭션에서 2PC와는 다르게 Saga는 DBMS에서 지원하는 트랜잭션을 사용할 수 없기 때문에 Isolation을 지원하지 않는다.
 
@@ -1073,7 +1082,7 @@ $ curl -XGET -H 'Content-Type: application/json' "localhost:6010/orders?customer
 
 <br>
 
-## Saga 패턴의 한계(?) 또는 이슈
+### Saga 패턴의 한계(?) 또는 이슈
 
 * 디버깅이 힘들다. (여러 마이크로 서비스를 뜯어봐야 한다.)
 * 복잡성이 커진다.
