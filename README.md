@@ -26,7 +26,12 @@ https://medium.com/trendyol-tech/saga-pattern-briefly-5b6cf22dfabc
 
 ### [4. 테스트 프로젝트 실습](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%ED%85%8C%EC%8A%A4%ED%8A%B8-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%8B%A4%EC%8A%B5)
   * [Prerequisites](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#prerequisites)
+  * [초기 데이터 생성](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%EC%B4%88%EA%B8%B0-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EC%83%9D%EC%84%B1)
+  * [주문 생성으로 SAGA 실습](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%EC%A3%BC%EB%AC%B8-%EC%83%9D%EC%84%B1%EC%9C%BC%EB%A1%9C-saga-%EC%8B%A4%EC%8A%B5)
 
+### [5. 마무리](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#%EB%A7%88%EB%AC%B4%EB%A6%AC)
+  * [SAGA의 특성](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#saga%EC%9D%98-%ED%8A%B9%EC%84%B1)
+  * [Saga 패턴의 한계(?) 또는 이슈](https://github.com/beer-one/distribution-transaction-example?tab=readme-ov-file#saga-%ED%8C%A8%ED%84%B4%EC%9D%98-%ED%95%9C%EA%B3%84-%EB%98%90%EB%8A%94-%EC%9D%B4%EC%8A%88)
 
 ## 접근법
 
