@@ -2,13 +2,15 @@ package com.trx.presentation.handler
 
 import com.trx.application.account.AccountCommandService
 import com.trx.domain.repository.AccountRepository
+import com.trx.errors.exception.AccountNotFoundException
+import com.trx.errors.exception.IncorrectParameterException
+import com.trx.errors.exception.MissingParameterException
 import com.trx.presentation.request.AccountCreateRequest
 import com.trx.presentation.request.DepositRequest
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import org.springframework.web.reactive.function.server.ServerResponse.noContent
 import org.springframework.web.reactive.function.server.ServerResponse.ok
-import javax.security.auth.login.AccountNotFoundException
 
 @Component
 class AccountHandler (
@@ -19,11 +21,11 @@ class AccountHandler (
     suspend fun getAccount(request: ServerRequest): ServerResponse {
         val customerId = request.queryParamOrNull("customerId")
             ?.toInt()
-            ?: throw Exception()
+            ?: throw IncorrectParameterException("customerId")
 
         return accountRepository.findByCustomerId(customerId)
             ?.let { ok().bodyValueAndAwait(it) }
-            ?: throw AccountNotFoundException()
+            ?: throw AccountNotFoundException(customerId)
     }
 
     suspend fun create(request: ServerRequest): ServerResponse {

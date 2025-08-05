@@ -11,6 +11,7 @@ data class Account(
     val id: Int = 0,
 
     @Column(name = "customer_id")
+    @UniqueConstraint
     val customerId: Int,
 
     var balance: Int
